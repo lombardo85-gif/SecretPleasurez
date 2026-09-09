@@ -307,6 +307,23 @@ final class CatalogSync
      * not a reason to report the whole row as failed.
      */
     /**
+     * Whether two pieces of text are equivalent once entity encoding and
+     * whitespace differences are set aside.
+     */
+    private function sameText(string $a, string $b): bool
+    {
+        return $this->normalizeText($a) === $this->normalizeText($b);
+    }
+
+    private function normalizeText(string $text): string
+    {
+        $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $text = preg_replace('/\s+/u', ' ', $text) ?? $text;
+
+        return trim($text);
+    }
+
+    /**
      * Make a supplier name safe for Product::$name.
      *
      * Validate::isCatalogName() rejects < > ; = # { } outright, failing the
@@ -459,7 +476,10 @@ final class CatalogSync
                 ? ($product->{$field}[$this->idLang] ?? null)
                 : $product->{$field};
 
-            if ((string) $current === (string) $value) {
+            // PrestaShop HTML-escapes text on save, so a stored "&amp;" round
+            // trips against a feed's "&" and every run would look like a change.
+            // Compare decoded text, but assign the raw feed value.
+            if ($this->sameText((string) $current, (string) $value)) {
                 return false;
             }
 
