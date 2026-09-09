@@ -1,0 +1,70 @@
+# Local development stack for the PRS935 dropship storefront.
+# The theme in this repo is mounted live into the container, so edits to
+# templates/ and assets/ show up on refresh without a rebuild.
+
+services:
+  mysql:
+    image: mariadb:11.4
+    container_name: spz-db
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${DB_NAME}
+      MARIADB_USER: ${DB_USER}
+      MARIADB_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  prestashop:
+    image: prestashop/prestashop:8.1-apache
+    container_name: spz-shop
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      DB_SERVER: mysql
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWD: ${DB_PASSWORD}
+      PS_INSTALL_AUTO: 1
+      PS_ERASE_DB: 0
+      PS_DEV_MODE: 1
+      PS_DOMAIN: localhost:8080
+      PS_FOLDER_ADMIN: ${PS_ADMIN_DIR}
+      PS_FOLDER_INSTALL: install
+      PS_LANGUAGE: en
+      PS_COUNTRY: us
+      PS_SHOP_NAME: ${PS_SHOP_NAME}
+      ADMIN_MAIL: ${PS_ADMIN_EMAIL}
+      ADMIN_PASSWD: ${PS_ADMIN_PASSWORD}
+    ports:
+      - "8080:80"
+    volumes:
+      - ps_data:/var/www/html
+      # Live-mount this repo as the theme PrestaShop will load.
+      - ./:/var/www/html/themes/PRS935
+
+  phpmyadmin:
+    image: phpmyadmin:5
+    container_name: spz-pma
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      PMA_HOST: mysql
+      UPLOAD_LIMIT: 512M
+    ports:
+      - "8081:80"
+
+volumes:
+  db_data:
+  ps_data:
