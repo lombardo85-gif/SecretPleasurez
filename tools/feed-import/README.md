@@ -77,17 +77,47 @@ These exist because a bad supplier feed can otherwise destroy a catalog:
 - **Idempotent.** Fields are compared before assignment, so an unchanged feed
   performs no writes and does not bump `date_upd`.
 
+## Images
+
+Images are attached separately, after the catalog exists. Image work is slow
+and IO-bound, and a failed thumbnail should never hold up a price sync.
+
+```bash
+docker exec -w /var/www/html/themes/PRS935/tools/feed-import spz-shop \
+  php import-images.php --config=config/supplier.json \
+                        --images-dir=/mnt/wp-uploads --dry-run
+```
+
+Files are matched on the feed's own image filename. WordPress size variants
+(`name-300x300.jpg`) are ignored so the full-size original is always used, and
+every registered PrestaShop image type gets a derivative generated — skipping
+those leaves broken thumbnails across the storefront. Products that already
+have an image are skipped unless you pass `--overwrite`.
+
 ## Scheduling
 
-Once a feed is verified, run it on cron inside the container:
+On this Windows host, schedule `schedule/run-sync.ps1` with Task Scheduler
+rather than calling `docker exec` directly. The wrapper starts Docker and the
+stack if the machine has rebooted since the last run, and returns the
+importer's own exit code so Task Scheduler shows a real result instead of
+always-success. Register it with `Register-ScheduledTask`, passing
+`-File <repo>\tools\feed-import\schedule\run-sync.ps1 -Config config/supplier.json`.
+
+A sensible cadence is stock and prices every 4 hours; the discontinued sweep
+only needs to run once a day, so give that its own task with a config where
+`disable_missing` is true and leave it false on the frequent one.
+
+Inside the container the equivalent is plain cron:
 
 ```cron
 # prices and stock every 4 hours
-0 */4 * * * cd /var/www/html/themes/PRS935/tools/feed-import && php import.php --config=config/acme.json --quiet
+0 */4 * * * cd /var/www/html/themes/PRS935/tools/feed-import && php import.php --config=config/supplier.json --quiet
 ```
 
 Logs land in `var/log/import-<timestamp>.log` (gitignored). Errors always go
-to stderr so cron mail is never silently empty on failure.
+to stderr so cron mail is never silently empty on failure, and the final
+summary line always prints even under `--quiet` — a scheduled run that reports
+nothing is indistinguishable from one that never ran.
 
 ## Known constraints
 
