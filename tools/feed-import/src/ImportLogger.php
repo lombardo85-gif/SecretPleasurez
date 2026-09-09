@@ -39,6 +39,21 @@ final class ImportLogger
         $this->write('INFO ', $message, false);
     }
 
+    /**
+     * A run's final tally. Always printed, even under --quiet: a scheduled run
+     * that reports nothing at all is indistinguishable from one that never ran.
+     */
+    public function summary(string $message): void
+    {
+        $line = sprintf('[%s] %s %s', date('Y-m-d H:i:s'), 'INFO ', $message);
+
+        if ($this->handle !== null) {
+            fwrite($this->handle, $line . PHP_EOL);
+        }
+
+        fwrite(STDOUT, $line . PHP_EOL);
+    }
+
     public function warn(string $message): void
     {
         ++$this->warnings;

@@ -150,7 +150,7 @@ try {
     }
 
     $stats = $sync->stats();
-    $logger->info(sprintf(
+    $logger->summary(sprintf(
         'done rows=%d created=%d updated=%d unchanged=%d skipped=%d failed=%d disabled=%d in %.1fs',
         $rows,
         $stats['created'], $stats['updated'], $stats['unchanged'],
