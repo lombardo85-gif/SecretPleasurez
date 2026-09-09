@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<module>
+    <name>otfeaturedproducts</name>
+    <displayName><![CDATA[Silver Theme Featured products]]></displayName>
+    <version><![CDATA[1.0.0]]></version>
+    <description><![CDATA[Displays featured products in the central column of your homepage.]]></description>
+    <author><![CDATA[SilverTheme]]></author>
+    <tab><![CDATA[]]></tab>
+    <is_configurable>1</is_configurable>
+    <need_instance>0</need_instance>
+	<limited_countries></limited_countries>
+</module>
