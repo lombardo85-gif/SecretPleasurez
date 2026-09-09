@@ -16,3 +16,9 @@ npm-debug.log*
 
 # Local secrets
 .env
+
+# Extracted from Documentation.zip (already tracked)
+docs/
+
+# Feed importer runtime
+tools/feed-import/var/
