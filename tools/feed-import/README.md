@@ -121,8 +121,10 @@ nothing is indistinguishable from one that never ran.
 
 ## Known constraints
 
-- Images are not imported yet; products are created without them.
+- `import.php` creates products without images; run `import-images.php`
+  afterwards, and only for products whose image file you actually hold.
 - Product variants (size/colour) are not handled — each feed row becomes one
-  simple product.
+  simple product. Feeds that ship one row per size will produce separate
+  products rather than a single product with combinations.
 - `id_tax_rules_group: 0` means no tax is applied. Set this to a real tax
   group before taking orders.
