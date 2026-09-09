@@ -98,7 +98,7 @@ final class CatalogSync
         }
 
         $qty = (int) ($this->toFloat($this->value($row, $map['quantity'] ?? null)) ?? 0);
-        $name = $this->value($row, $map['name'] ?? null) ?? '';
+        $name = $this->sanitizeName($this->value($row, $map['name'] ?? null) ?? '');
 
         $idProduct = $this->findByReference($sku);
 
@@ -123,6 +123,19 @@ final class CatalogSync
 
         try {
             $product = $idProduct === null ? new Product() : new Product($idProduct, false, $this->idLang);
+
+            // A product row whose language rows never got written (an earlier
+            // run failing validation half-way through add()) cannot be loaded:
+            // ObjectModel leaves id at 0, and update() would then write against
+            // id_product = 0 and collide with the next insert. Drop the stray
+            // row and rebuild the product from scratch.
+            if ($idProduct !== null && (int) $product->id !== $idProduct) {
+                $this->log->warn(sprintf('line %s: SKU %s was half-created (id %d); rebuilding', $line, $sku, $idProduct));
+                $this->deleteStrayProduct($idProduct);
+                $idProduct = null;
+                $product = new Product();
+            }
+
             $isNew = $idProduct === null;
             $changed = $isNew;
 
@@ -213,6 +226,10 @@ final class CatalogSync
         } catch (Throwable $e) {
             ++$this->stats['failed'];
             $this->log->error(sprintf('line %s: SKU %s threw: %s', $line, $sku, $e->getMessage()));
+            // A throw part-way through add() can leave rows behind on
+            // id_product = 0. Left there they collide with the next insert, so
+            // one failure would otherwise cascade through the rest of the feed.
+            $this->purgeZeroId();
             $this->reopenEntityManager();
         }
     }
@@ -289,6 +306,53 @@ final class CatalogSync
      * succeeded, so a stock-movement failure is a warning about one field,
      * not a reason to report the whole row as failed.
      */
+    /**
+     * Make a supplier name safe for Product::$name.
+     *
+     * Validate::isCatalogName() rejects < > ; = # { } outright, failing the
+     * whole product. Real feeds use them constantly — "Dong #9" alone accounted
+     * for 281 rejected rows — so they are rewritten rather than dropped.
+     */
+    private function sanitizeName(string $name): string
+    {
+        if ($name === '') {
+            return '';
+        }
+
+        // "#9" carries meaning (it is the variant number); keep it as "No. 9".
+        $name = preg_replace('/#\s*(?=\d)/u', 'No. ', $name) ?? $name;
+
+        $name = str_replace(['<', '>', ';', '=', '#', '{', '}'], ' ', $name);
+        $name = preg_replace('/\s+/u', ' ', $name) ?? $name;
+
+        // name is varchar(128); an over-long name fails validation too.
+        $name = trim($name);
+        if (mb_strlen($name) > 128) {
+            $cut = mb_substr($name, 0, 128);
+            $space = mb_strrpos($cut, ' ');
+            $name = $space !== false && $space > 90 ? mb_substr($cut, 0, $space) : $cut;
+        }
+
+        return $name;
+    }
+
+    /**
+     * Remove a product row that cannot be loaded, so the next pass recreates it
+     * cleanly. Only ever used for rows the importer itself left behind.
+     */
+    private function deleteStrayProduct(int $idProduct): void
+    {
+        if ($idProduct <= 0) {
+            return;
+        }
+
+        $db = Db::getInstance();
+        foreach (['product_lang', 'product_shop', 'stock_available', 'category_product', 'image'] as $table) {
+            $db->execute('DELETE FROM ' . _DB_PREFIX_ . $table . ' WHERE id_product = ' . $idProduct);
+        }
+        $db->execute('DELETE FROM ' . _DB_PREFIX_ . 'product WHERE id_product = ' . $idProduct);
+    }
+
     /**
      * Delete any rows written against id_product = 0. They are unreachable, and
      * left in place they collide with the next product PrestaShop tries to
