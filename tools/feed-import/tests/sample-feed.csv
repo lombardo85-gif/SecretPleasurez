@@ -1,0 +1,9 @@
+SKU,ProductName,ShortDescription,WholesalePrice,MAP,QtyAvailable,UPC,ShipWeight,Category
+ACME-1001,Satin Blindfold,Soft satin sleep and play mask,4.25,,40,0712345678901,0.15,Accessories
+ACME-1002,Silicone Massager,Waterproof rechargeable personal massager,18.50,49.99,12,0712345678902,0.45,Massagers
+ACME-1003,Warming Lubricant 4oz,Water-based warming formula,3.10,,120,0712345678903,0.30,Wellness
+ACME-1004,Luxury Silk Ties Set,"Set of two, 60in silk restraint ties",11.75,,7,0712345678904,0.22,Accessories
+ACME-1005,Premium Body Oil,Unscented massage oil 8oz,"1.234,56",,5,0712345678905,0.55,Wellness
+ACME-1006,Discreet Storage Bag,Lockable travel pouch,6.00,,0,0712345678906,0.18,Accessories
+ACME-1007,,Missing name should be skipped,9.99,,3,,0.10,Accessories
+ACME-1008,Bad Cost Item,Cost is garbage,notanumber,,3,,0.10,Accessories

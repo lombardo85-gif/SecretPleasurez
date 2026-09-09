@@ -1,0 +1,61 @@
+{
+  "_comment": "Copy to <supplier>.json and edit. Column names under mapping must match the feed's header row exactly (case-sensitive).",
+
+  "feed": {
+    "format": "csv",
+    "source": "https://feeds.example-wholesale.com/inventory.csv",
+    "delimiter": ",",
+    "enclosure": "\"",
+    "encoding": "UTF-8",
+    "timeout": 180,
+    "auth": {
+      "user": "REPLACE_ME",
+      "password": "REPLACE_ME"
+    },
+    "_xml_only": "For format=xml, set item_node to the repeating element name, e.g. 'product'. Nested fields are addressed with dots ('stock.quantity') and attributes with @ ('item.@sku').",
+    "item_node": "product"
+  },
+
+  "mapping": {
+    "sku": "SKU",
+    "name": "ProductName",
+    "description": "ShortDescription",
+    "cost": "WholesalePrice",
+    "map_price": "MAP",
+    "quantity": "QtyAvailable",
+    "ean13": "UPC",
+    "weight": "ShipWeight",
+    "category": "Category"
+  },
+
+  "pricing": {
+    "_comment": "First matching tier wins. up_to is inclusive; null means 'and above'. MAP, when the feed supplies it, overrides every rule here.",
+    "tiers": [
+      { "up_to": 10.0, "markup_percent": 140.0 },
+      { "up_to": 25.0, "markup_percent": 110.0 },
+      { "up_to": 60.0, "markup_percent": 85.0 },
+      { "up_to": null, "markup_percent": 65.0 }
+    ],
+    "default_markup_percent": 65.0,
+    "handling_fee": 0.0,
+    "min_margin_amount": 4.0,
+    "rounding": "charm"
+  },
+
+  "catalog": {
+    "_comment": "sku_prefix scopes the discontinued sweep to one supplier's products so a second supplier's feed never disables them.",
+    "sku_prefix": "ACME-",
+    "default_category_id": 2,
+    "create_categories": true,
+    "id_tax_rules_group": 0,
+    "activate_new": false,
+    "stock_buffer": 2,
+    "disable_missing": true,
+    "max_disable_ratio": 0.25
+  },
+
+  "runtime": {
+    "log_dir": "var/log",
+    "memory_limit": "512M"
+  }
+}

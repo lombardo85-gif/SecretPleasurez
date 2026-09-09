@@ -193,6 +193,7 @@ final class CatalogSync
         } catch (Throwable $e) {
             ++$this->stats['failed'];
             $this->log->error(sprintf('line %s: SKU %s threw: %s', $line, $sku, $e->getMessage()));
+            $this->reopenEntityManager();
         }
     }
 
@@ -263,6 +264,11 @@ final class CatalogSync
         $this->log->info(sprintf('disabled %d product(s) no longer in the feed', count($missing)));
     }
 
+    /**
+     * Stock is synced in its own try/catch: the product write already
+     * succeeded, so a stock-movement failure is a warning about one field,
+     * not a reason to report the whole row as failed.
+     */
     private function syncStock(int $idProduct, int $qty): void
     {
         if ($idProduct <= 0 || $this->dryRun) {
@@ -272,13 +278,41 @@ final class CatalogSync
         $buffer = (int) ($this->config['catalog']['stock_buffer'] ?? 0);
         $qty = max(0, $qty - $buffer);
 
-        StockAvailable::setQuantity($idProduct, 0, $qty, $this->idShop);
+        try {
+            StockAvailable::setQuantity($idProduct, 0, $qty, $this->idShop);
+        } catch (Throwable $e) {
+            $this->log->warn(sprintf('product %d: stock not set to %d: %s', $idProduct, $qty, $e->getMessage()));
+            $this->reopenEntityManager();
+        }
+    }
+
+    /**
+     * Doctrine closes the EntityManager permanently after any failed flush, so
+     * without this one bad row makes every later row fail with "The
+     * EntityManager is closed."
+     */
+    private function reopenEntityManager(): void
+    {
+        try {
+            $container = \PrestaShop\PrestaShop\Adapter\SymfonyContainer::getInstance();
+            if ($container === null) {
+                return;
+            }
+
+            $em = $container->get('doctrine.orm.entity_manager');
+            if ($em !== null && !$em->isOpen()) {
+                $container->get('doctrine')->resetManager();
+            }
+        } catch (Throwable $e) {
+            // Nothing further to do; the next row will report its own failure.
+        }
     }
 
     private function findByReference(string $sku): ?int
     {
         $id = Db::getInstance()->getValue(
-            'SELECT id_product FROM ' . _DB_PREFIX_ . 'product WHERE reference = "' . pSQL($sku) . '" LIMIT 1'
+            // No LIMIT here: Db::getValue() appends its own, and two produce a syntax error.
+            'SELECT id_product FROM ' . _DB_PREFIX_ . 'product WHERE reference = "' . pSQL($sku) . '"'
         );
 
         return $id ? (int) $id : null;
@@ -297,7 +331,7 @@ final class CatalogSync
         $existing = Db::getInstance()->getValue(
             'SELECT c.id_category FROM ' . _DB_PREFIX_ . 'category c
              JOIN ' . _DB_PREFIX_ . 'category_lang cl ON cl.id_category = c.id_category
-             WHERE cl.name = "' . pSQL($name) . '" AND cl.id_lang = ' . $this->idLang . ' LIMIT 1'
+             WHERE cl.name = "' . pSQL($name) . '" AND cl.id_lang = ' . $this->idLang
         );
 
         if ($existing) {
