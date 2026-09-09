@@ -141,8 +141,16 @@ final class CatalogSync
             }
 
             $desc = $this->value($row, $map['description'] ?? null);
-            if ($desc !== null && $this->assign($product, 'description_short', $desc, true)) {
-                $changed = true;
+            if ($desc !== null && $desc !== '') {
+                // The full text goes in description; description_short is
+                // length-capped by PrestaShop (PS_PRODUCT_SHORT_DESC_LIMIT,
+                // 800 by default) and rejects the whole product if exceeded.
+                if ($this->assign($product, 'description', $desc, true)) {
+                    $changed = true;
+                }
+                if ($this->assign($product, 'description_short', $this->shorten($desc), true)) {
+                    $changed = true;
+                }
             }
 
             $ean = $this->value($row, $map['ean13'] ?? null);
@@ -174,6 +182,18 @@ final class CatalogSync
             if (!$ok) {
                 ++$this->stats['failed'];
                 $this->log->error(sprintf('line %s: SKU %s could not be saved', $line, $sku));
+
+                return;
+            }
+
+            // A partially-applied add() can return true while leaving id 0, and
+            // anything written against id 0 collides with the next product on
+            // the (id_product, id_lang) primary key. Stop and clean up instead
+            // of poisoning every later row.
+            if ((int) $product->id <= 0) {
+                ++$this->stats['failed'];
+                $this->log->error(sprintf('line %s: SKU %s saved with no id — rolling back its rows', $line, $sku));
+                $this->purgeZeroId();
 
                 return;
             }
@@ -269,6 +289,19 @@ final class CatalogSync
      * succeeded, so a stock-movement failure is a warning about one field,
      * not a reason to report the whole row as failed.
      */
+    /**
+     * Delete any rows written against id_product = 0. They are unreachable, and
+     * left in place they collide with the next product PrestaShop tries to
+     * insert, turning one bad row into an unbroken run of failures.
+     */
+    private function purgeZeroId(): void
+    {
+        $db = Db::getInstance();
+        foreach (['product_lang', 'product_shop', 'stock_available', 'category_product', 'image'] as $table) {
+            $db->execute('DELETE FROM ' . _DB_PREFIX_ . $table . ' WHERE id_product = 0');
+        }
+    }
+
     private function syncStock(int $idProduct, int $qty): void
     {
         if ($idProduct <= 0 || $this->dryRun) {
@@ -384,6 +417,37 @@ final class CatalogSync
         $product->{$field} = $value;
 
         return true;
+    }
+
+    /**
+     * Trim a description to fit description_short, cutting on a word boundary.
+     *
+     * The configured limit is compared against the tag-stripped length, so the
+     * budget is applied to plain text and a little headroom is left rather than
+     * cutting exactly on the boundary.
+     */
+    private function shorten(string $text): string
+    {
+        $limit = (int) Configuration::get('PS_PRODUCT_SHORT_DESC_LIMIT');
+        if ($limit <= 0) {
+            $limit = 800;
+        }
+        $limit = max(80, $limit - 50);
+
+        $plain = trim(preg_replace('/\s+/u', ' ', strip_tags($text)) ?? '');
+
+        if (mb_strlen($plain) <= $limit) {
+            return $plain;
+        }
+
+        $cut = mb_substr($plain, 0, $limit);
+        $space = mb_strrpos($cut, ' ');
+        if ($space !== false && $space > $limit * 0.6) {
+            $cut = mb_substr($cut, 0, $space);
+        }
+
+        $trim = " " . chr(9) . chr(10) . chr(13) . '.,;:-';
+        return rtrim($cut, $trim) . '…';
     }
 
     /** @param array<string,string> $row */
