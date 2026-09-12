@@ -43,8 +43,14 @@ foreach (array_slice($argv, 1) as $arg) {
     $opts[$eq === false ? $arg : substr($arg, 0, $eq)] = $eq === false ? '1' : substr($arg, $eq + 1);
 }
 
-if (!isset($opts['config'], $opts['images-dir'])) {
-    fwrite(STDERR, "error: --config=PATH and --images-dir=DIR are required\n");
+if (!isset($opts['config'])) {
+    fwrite(STDERR, "error: --config=PATH is required\n");
+    exit(2);
+}
+
+// A feed whose image column holds absolute URLs needs no local directory.
+if (!isset($opts['images-dir']) && !isset($opts['from-url'])) {
+    fwrite(STDERR, "error: pass --images-dir=DIR for local files, or --from-url when the feed's image column holds URLs\n");
     exit(2);
 }
 
@@ -82,7 +88,10 @@ $log = new ImportLogger($jobConfig['runtime']['log_dir'] ?? __DIR__ . '/var/log'
 $index = [];
 foreach (explode(',', (string) ($opts['images-dir'] ?? '')) as $dir) {
     $dir = trim($dir);
-    if ($dir === '' || !is_dir($dir)) {
+    if ($dir === '') {
+        continue;
+    }
+    if (!is_dir($dir)) {
         $log->warn(sprintf('images-dir not found, skipping: %s', $dir));
         continue;
     }
@@ -115,7 +124,9 @@ foreach (explode(',', (string) ($opts['images-dir'] ?? '')) as $dir) {
     }
 }
 
-$log->info(sprintf('indexed %d source images', count($index)));
+if ($index !== []) {
+    $log->info(sprintf('indexed %d local source images', count($index)));
+}
 
 $idLang = (int) Configuration::get('PS_LANG_DEFAULT');
 $types = ImageType::getImagesTypes('products');
