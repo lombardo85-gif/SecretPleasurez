@@ -1,0 +1,48 @@
+{
+  "_comment": "2023 distributor CSV. Richer than the 2022 XML feed: 38,438 products, absolute CloudFront image URLs on every row, MAP on 8,673. NOTE: this feed carries NO stock quantity, so quantity is left alone by this job — see README 'Known constraints'.",
+
+  "feed": {
+    "format": "csv",
+    "source": "var/feeds/wholesale-2023.csv",
+    "delimiter": ",",
+    "enclosure": "\"",
+    "encoding": "UTF-8"
+  },
+
+  "mapping": {
+    "sku": "upc",
+    "name": "title",
+    "description": "description",
+    "cost": "wholesale_price",
+    "map_price": "map",
+    "ean13": "upc",
+    "weight": "weight",
+    "category": "category",
+    "image": "image_url"
+  },
+
+  "pricing": {
+    "tiers": [
+      { "up_to": 10.0, "markup_percent": 140.0 },
+      { "up_to": 25.0, "markup_percent": 110.0 },
+      { "up_to": 60.0, "markup_percent": 85.0 },
+      { "up_to": null, "markup_percent": 65.0 }
+    ],
+    "default_markup_percent": 65.0,
+    "handling_fee": 0.0,
+    "min_margin_amount": 4.0,
+    "rounding": "charm"
+  },
+
+  "catalog": {
+    "default_category_id": 2,
+    "create_categories": true,
+    "id_tax_rules_group": 0,
+    "activate_new": false,
+    "stock_buffer": 0,
+    "disable_missing": false,
+    "max_disable_ratio": 0.25
+  },
+
+  "runtime": { "log_dir": "var/log", "memory_limit": "1024M" }
+}

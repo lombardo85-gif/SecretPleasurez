@@ -63,6 +63,7 @@ if ($skuColumn === null) {
 }
 
 $dryRun = isset($opts['dry-run']);
+$fromUrl = isset($opts['from-url']);
 $overwrite = isset($opts['overwrite']);
 $limit = isset($opts['limit']) ? max(0, (int) $opts['limit']) : 0;
 
@@ -79,7 +80,7 @@ $log = new ImportLogger($jobConfig['runtime']['log_dir'] ?? __DIR__ . '/var/log'
 // Index every candidate file once. Walking 35k files per product would be
 // quadratic; one pass into a basename map keeps the run linear.
 $index = [];
-foreach (explode(',', $opts['images-dir']) as $dir) {
+foreach (explode(',', (string) ($opts['images-dir'] ?? '')) as $dir) {
     $dir = trim($dir);
     if ($dir === '' || !is_dir($dir)) {
         $log->warn(sprintf('images-dir not found, skipping: %s', $dir));
@@ -131,8 +132,16 @@ try {
             continue;
         }
 
-        $source = $index[strtolower($file)] ?? null;
-        if ($source === null) {
+        $isUrl = (bool) preg_match('#^https?://#i', $file);
+
+        if ($isUrl && !$fromUrl) {
+            // Feed holds URLs but the caller asked for local files only.
+            ++$noFile;
+            continue;
+        }
+
+        $source = $isUrl ? null : ($index[strtolower($file)] ?? null);
+        if (!$isUrl && $source === null) {
             ++$noFile;
             continue;
         }
@@ -160,13 +169,28 @@ try {
 
         if ($dryRun) {
             ++$attached;
-            $log->info(sprintf('[dry-run] %-16s -> product %d  %s', $sku, $idProduct, basename($source)));
+            $log->info(sprintf('[dry-run] %-16s -> product %d  %s', $sku, $idProduct, basename($isUrl ? $file : $source)));
         } else {
+            $temp = null;
+
+            if ($isUrl) {
+                $temp = downloadImage($file, $log);
+                if ($temp === null) {
+                    ++$failed;
+                    continue;
+                }
+                $source = $temp;
+            }
+
             if (attachImage($idProduct, $source, $idLang, $types)) {
                 ++$attached;
             } else {
                 ++$failed;
-                $log->warn(sprintf('%s: could not attach %s', $sku, basename($source)));
+                $log->warn(sprintf('%s: could not attach %s', $sku, basename($file)));
+            }
+
+            if ($temp !== null) {
+                @unlink($temp);
             }
         }
 
@@ -190,6 +214,56 @@ $log->summary(sprintf(
 ));
 
 exit($failed > 0 ? 1 : 0);
+
+/**
+ * Fetch a remote image to a temp file. Returns null on any failure, so one
+ * unreachable image never aborts a 38k-row run.
+ */
+function downloadImage(string $url, ImportLogger $log): ?string
+{
+    $temp = tempnam(sys_get_temp_dir(), 'feedimg');
+    if ($temp === false) {
+        $log->warn('could not create temp file for ' . $url);
+
+        return null;
+    }
+
+    $ctx = stream_context_create([
+        'http' => [
+            'timeout' => 30,
+            'follow_location' => 1,
+            'max_redirects' => 3,
+            'header' => "User-Agent: spz-feed-import/1.0
+",
+        ],
+    ]);
+
+    $bytes = @file_get_contents($url, false, $ctx);
+
+    // An HTML error page or a 0-byte response is not an image; writing it would
+    // produce a product with a broken thumbnail rather than none at all.
+    if ($bytes === false || strlen($bytes) < 512) {
+        @unlink($temp);
+        $log->warn(sprintf('download failed or too small: %s', $url));
+
+        return null;
+    }
+
+    if (file_put_contents($temp, $bytes) === false) {
+        @unlink($temp);
+
+        return null;
+    }
+
+    if (@getimagesize($temp) === false) {
+        @unlink($temp);
+        $log->warn(sprintf('not a usable image: %s', $url));
+
+        return null;
+    }
+
+    return $temp;
+}
 
 /**
  * @param array<int,array<string,mixed>> $types
