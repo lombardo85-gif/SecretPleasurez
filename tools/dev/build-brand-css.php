@@ -346,8 +346,6 @@ foreach ($sources as $src) {
         $contextKey = implode("\n", $rule['context']);
         $contexts[$contextKey] = $rule['context'];
 
-        // Does the rule set its own text colour? (background-color does not count.)
-        $ruleHasColor = (bool) preg_match('/(^|;)\s*color\s*:/i', $rule['body']);
         $emittedFill = false;
 
         foreach (splitDeclarations($rule['body']) as $declaration) {
@@ -432,11 +430,12 @@ foreach ($sources as $src) {
             }
         }
 
-        // Fills carry white text (5.39:1 on --spz-fill). A rule that paints a
-        // fill but leaves text colour to inheritance shows whatever it
-        // inherits: the cart's "Continue shopping" label was muted text on
-        // magenta at 2.57:1.
-        if ($emittedFill && !$ruleHasColor) {
+        // Fills always carry white text (5.39:1 on --spz-fill), even when the
+        // theme already declared white: its declaration has no !important, so
+        // a generated neutral-text rule such as `.label { color: muted
+        // !important }` beats it. The cart's "Continue shopping" label showed
+        // exactly that - muted text on magenta at 2.57:1.
+        if ($emittedFill) {
             $line = 'color: #fff !important;';
             if (!in_array($line, $byContext[$contextKey][$selector], true)) {
                 $byContext[$contextKey][$selector][] = $line;

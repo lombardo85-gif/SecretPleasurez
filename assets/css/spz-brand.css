@@ -282,6 +282,7 @@ select.form-control:focus::-ms-value {
 
 .btn-primary {
   background-color: var(--spz-fill) !important;
+  color: #fff !important;
 }
 
 .btn-primary.focus,
@@ -376,6 +377,7 @@ select.form-control:focus::-ms-value {
 .btn-warning {
   background-color: var(--spz-fill) !important;
   border-color: var(--spz-line) !important;
+  color: #fff !important;
 }
 
 .btn-warning.disabled.focus,
@@ -392,6 +394,7 @@ select.form-control:focus::-ms-value {
 .btn-danger {
   background-color: var(--spz-fill) !important;
   border-color: var(--spz-line) !important;
+  color: #fff !important;
 }
 
 .btn-danger.disabled.focus,
@@ -448,6 +451,7 @@ select.form-control:focus::-ms-value {
 .open>.btn-outline-warning.dropdown-toggle {
   background-color: var(--spz-fill-hover) !important;
   border-color: var(--spz-line) !important;
+  color: #fff !important;
 }
 
 .btn-outline-danger {
@@ -463,6 +467,7 @@ select.form-control:focus::-ms-value {
 .open>.btn-outline-danger.dropdown-toggle {
   background-color: var(--spz-fill-hover) !important;
   border-color: var(--spz-line) !important;
+  color: #fff !important;
 }
 
 .btn-link {
@@ -827,6 +832,7 @@ base::-moz-progress-bar {
 
 .tooltip-inner {
   background-color: var(--spz-fill) !important;
+  color: #fff !important;
 }
 
 .popover {
@@ -862,10 +868,12 @@ a.bg-primary:hover {
 
 .bg-warning {
   background-color: var(--spz-fill)!important;
+  color: #fff !important;
 }
 
 .bg-danger {
   background-color: var(--spz-fill)!important;
+  color: #fff !important;
 }
 
 .bg-inverse {
@@ -947,6 +955,7 @@ p {
 
 .btn-primary, .btn-secondary, .btn-tertiary {
   background: var(--spz-fill) !important;
+  color: #fff !important;
 }
 
 .btn-tertiary {
@@ -955,6 +964,7 @@ p {
 
 .cart-grid-body a.label {
   background: var(--spz-fill) !important;
+  color: #fff !important;
 }
 
 .cart-grid-body a.label:hover {
@@ -1390,6 +1400,7 @@ h1.h1 {
 .product-accessories .highlighted-informations .quick-view,
 .product-miniature .highlighted-informations .quick-view {
   background-color: var(--spz-fill) !important;
+  color: #fff !important;
 }
 
 #products .highlighted-informations .quick-view:hover,
@@ -1555,6 +1566,7 @@ h1.h1 {
   color: var(--spz-text) !important;
   border-color: var(--spz-line) !important;
   background-color: var(--spz-fill) !important;
+  color: #fff !important;
 }
 
 .active_filters {
@@ -1675,6 +1687,7 @@ h1.h1 {
   border: 0 solid var(--spz-line) !important;
   color: var(--spz-text) !important;
   background: var(--spz-fill-hover) !important;
+  color: #fff !important;
 }
 
 .product-cover img {
@@ -1819,6 +1832,7 @@ li.product-flag.on-sale {
 
 .block-promo .promo-code .alert-danger {
   background: var(--spz-fill) !important;
+  color: #fff !important;
 }
 
 .block-promo .promo-code .alert-danger:after {
@@ -2116,6 +2130,7 @@ div#_desktop_cart #cart_block_total {
 
 .blockcart > .header span.cart-products-count {
   background-color: var(--spz-fill) !important;
+  color: #fff !important;
 }
 
 .blockcart > .header:hover span.cart-products-count {
@@ -2459,6 +2474,7 @@ footer#footer {
 
 .product-actions .btn-primary {
   background: var(--spz-fill) !important;
+  color: #fff !important;
 }
 
 .product-actions .btn-primary:hover {
