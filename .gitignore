@@ -22,3 +22,6 @@ docs/
 
 # Feed importer runtime
 tools/feed-import/var/
+
+# Python bytecode from host-side tools
+__pycache__/
