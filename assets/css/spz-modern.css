@@ -257,7 +257,7 @@ a {
 
   html.spz-stuck #header .header-top img.logo,
   html.spz-stuck #header .header-top #_desktop_logo img {
-    max-height: 56px !important;
+    height: 60px !important;
     width: auto !important;
   }
 }
@@ -271,29 +271,24 @@ a {
   }
 }
 
-/* The logo (brand/NEW-Logo.png) is a neon mark on a near-black ground,
-   296x245 with no transparency. mix-blend-mode: lighten keeps the lighter of
-   logo and page in each channel, so the dark ground melts into the tinted
-   header while the neon and lettering are untouched: no visible rectangle,
-   and no edited copy of the artwork to keep in sync. */
-#header img.logo,
-#_desktop_logo img,
-#_mobile_logo img,
-.spz-age-gate__logo {
-  mix-blend-mode: lighten;
-}
-
-/* Near-square, unlike the wide wordmark it replaced, so cap by height. */
+/* Header logo: assets/img/spz-logo-lockup.png, the symbol beside the
+   wordmark (630x200, transparent). The stacked 296x245 mark it replaced left
+   the wordmark ~10px tall at this height; the lockup makes it ~4x that.
+   Sized by height, since the lockup is wide. */
 #header .header-top img.logo,
 #_desktop_logo img {
   width: auto !important;
-  max-height: 96px !important;
+  height: 100px !important;
+  max-height: none !important;
+  max-width: 100%;
 }
 
 @media (max-width: 767px) {
   #_mobile_logo img {
     width: auto !important;
-    max-height: 64px !important;
+    height: 54px !important;
+    max-height: none !important;
+    max-width: 62vw;
   }
 }
 
@@ -547,6 +542,49 @@ a {
   box-shadow: none !important;
   transform: none;
   cursor: not-allowed;
+}
+
+/* spz-cart-icon: the grid add-to-cart is an icon button. The theme drew a
+   22x17 pink sprite pinned to the top-right of a 22x17 box; with the pill
+   padding above, that became a 52x46 blob with the cart in its corner. It is
+   now a true circle with a centred cart in ink. An inline SVG, because the
+   sprite is a bitmap that cannot be recoloured. */
+.thumbnail-container .addtocart-button .btn-primary {
+  width: 46px !important;
+  height: 46px !important;
+  min-height: 46px;
+  padding: 0 !important;
+  font-size: 0 !important;
+  border-radius: 50% !important;
+}
+
+.thumbnail-container .addtocart-button .btn-primary::before {
+  top: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230B0B0D' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 3h2.6l2.4 11.2a1.8 1.8 0 0 0 1.8 1.4h8.3a1.8 1.8 0 0 0 1.8-1.4L21 7H6'/%3E%3Ccircle cx='9.5' cy='20' r='1.3' fill='%230B0B0D'/%3E%3Ccircle cx='17.5' cy='20' r='1.3' fill='%230B0B0D'/%3E%3C/svg%3E") no-repeat center / 22px 22px !important;
+}
+
+/* Sidebar and special-offer blocks show "Add to cart" as text. The theme
+   styled it as a grey link, which the palette kept (grey, cyan on hover), so
+   it landed on the pink pill above at 2.9:1. Same selectors as the palette
+   file, loaded later, so these win; the sizing undoes the icon button. */
+.sidebar-products .addtocart-button .btn-primary,
+.sidebar-products .thumbnail-container .addtocart-button .btn-primary,
+.sidebar-products .thumbnail-container:hover .addtocart-button .btn-primary,
+#special-products .thumbnail-container .addtocart-button .btn-primary,
+#special-products .thumbnail-container .addtocart-button .btn-primary:hover,
+.newproducts-products .thumbnail-container .addtocart-button .btn-primary,
+.newproducts-products .thumbnail-container:hover .addtocart-button .btn-primary {
+  color: var(--spz-on-fill) !important;
+  width: auto !important;
+  height: auto !important;
+  padding: 12px 22px !important;
+  font-size: 14px !important;
+  border-radius: var(--spz-radius-pill) !important;
 }
 
 .btn-secondary,
@@ -1159,7 +1197,8 @@ html.spz-age-pending body > *:not(.spz-age-gate) {
 
 .spz-age-gate__logo {
   display: block;
-  max-width: 220px;
+  width: min(320px, 100%);
+  max-width: 100%;
   height: auto;
   margin: 0 auto 22px;
   border-radius: 12px;
@@ -1247,116 +1286,9 @@ body::before {
 }
 
 /* ------------------------------------------------------------------ *
- * Homepage hero (templates/index.tpl) — replaces the demo slideshow.
- * The banner is 601x191, so it is shown near its own size on a matching
- * neon stage rather than stretched across a full-width slider.
+ * Shared pieces: category chips (used under the offers carousel, module
+ * spzpromos) and screen-reader-only text.
  * ------------------------------------------------------------------ */
-.spz-hero {
-  position: relative;
-  margin: 28px 0 44px;
-  overflow: hidden;
-  text-align: center;
-  background: var(--spz-bg);
-  border: 1px solid var(--spz-border);
-  border-radius: var(--spz-radius-xl);
-  box-shadow:
-    0 30px 70px -40px rgba(255, 42, 133, 0.35),
-    0 30px 70px -40px rgba(0, 229, 255, 0.25);
-}
-
-/* The art (brand/Gemini_Generated_Image_96almx96almx96al.jpeg) fills the card edge to edge. It is
-   cut by tools/dev/build-hero.php: a wide band for desktop and a tighter
-   crop for phones, so the lettering is not shrunk to a sliver at 375px. */
-.spz-hero__media,
-.spz-hero__media img {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-
-.spz-hero__media {
-  position: relative;
-}
-
-.spz-hero__media img {
-  aspect-ratio: 1376 / 520;
-  object-fit: cover;
-}
-
-@media (max-width: 767px) {
-  .spz-hero__media img {
-    aspect-ratio: 980 / 560;
-  }
-}
-
-/* Fade the art's lower edge into the card so the buttons sit on it cleanly. */
-.spz-hero__media::after {
-  content: "";
-  position: absolute;
-  inset: auto 0 0;
-  height: 32%;
-  background: linear-gradient(to bottom, transparent, var(--spz-bg));
-  pointer-events: none;
-}
-
-.spz-hero__body {
-  position: relative;
-  margin-top: -28px;
-  padding: 0 clamp(16px, 4vw, 40px) clamp(22px, 3.5vw, 34px);
-}
-
-.spz-hero__actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 12px;
-  margin-top: 24px;
-}
-
-.spz-btn-ghost {
-  display: inline-flex;
-  align-items: center;
-  min-height: 46px;
-  padding: 12px 26px;
-  border: 1px solid var(--spz-accent);
-  border-radius: var(--spz-radius-pill);
-  background: transparent;
-  color: var(--spz-accent) !important;
-  font-weight: 700;
-  text-decoration: none !important;
-  transition: background-color 0.2s var(--spz-ease), box-shadow 0.2s var(--spz-ease);
-}
-
-.spz-btn-ghost:hover,
-.spz-btn-ghost:focus-visible {
-  background: rgba(0, 229, 255, 0.1);
-  box-shadow: 0 0 24px -6px rgba(0, 229, 255, 0.55);
-}
-
-/* Category chips: one-tap routes into the largest real categories. They
-   scroll sideways on phones instead of wrapping into a wall of pills. */
-.spz-hero__chips {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 26px;
-  padding: 2px;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.spz-hero__chips::-webkit-scrollbar {
-  display: none;
-}
-
-@media (max-width: 767px) {
-  .spz-hero__chips {
-    justify-content: flex-start;
-    margin-inline: calc(-1 * clamp(16px, 4vw, 40px));
-    padding-inline: clamp(16px, 4vw, 40px);
-  }
-}
-
 .spz-chip {
   flex: none;
   padding: 9px 16px;

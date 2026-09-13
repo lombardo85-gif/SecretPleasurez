@@ -5,9 +5,9 @@ Three different logo directions were tried; these are the survivors.
 
 | File | Size | Alpha | Notes |
 | --- | --- | --- | --- |
-| `NEW-Logo.png` | 296x245 | no | **In use** as the storefront logo (`img/spz-logo-neon.png`, 2026-09-12). Neon cyan/magenta interlocked symbols, rose-gold script, tagline "Your secret. Our pleasure." Near-black ground; `spz-modern.css` blends it into the header with `mix-blend-mode: lighten`, so no transparent copy is needed on the dark site. |
-| `Gemini_Generated_Image_96almx96almx96al.jpeg` | 1376x768 | no | **In use** as the homepage hero (2026-09-12). Logo and "Your secret. Our pleasure." on a nebula; `tools/dev/build-hero.php` finds the logo and cuts `assets/img/spz-hero-desktop.jpg` (1376x520) and `spz-hero-mobile.jpg` (980x560) around it. |
-| `NEW-Banner.png` | 601x191 | no | Previous hero banner, replaced by the art above. |
+| `NEW-Logo.png` | 296x245 | no | Stacked neon logo (`img/spz-logo-neon.png`), still `PS_LOGO`. Was the storefront header logo 2026-09-12; replaced on 2026-09-13 by the wider lockup, in which the wordmark reads about four times larger. Neon cyan/magenta interlocked symbols, rose-gold script, tagline "Your secret. Our pleasure." Near-black ground. |
+| `Gemini_Generated_Image_96almx96almx96al.jpeg` | 1376x768 | no | **Source of the header logo** (2026-09-13). `tools/dev/build-logo-lockup.php` cuts the horizontal lockup (symbol beside wordmark) into `assets/img/spz-logo-lockup.png`, 630x200 transparent. Briefly the homepage hero; removed at the owner's request because it repeated the logo at five times the size. |
+| `NEW-Banner.png` | 601x191 | no | Earlier hero banner; no longer used. |
 | `NEW-Favicon.ico` | 117x121 | yes | Supplied favicon: the neon symbols in a round metallic badge. One 32-bit image, not the usual 16/32/48 set. |
 | `NEW-Favicon.png` | 118x123 | no | Same artwork, but **actually a BMP** with a .png name and no transparency. Not used. |
 | `NEW-Favicon-source.png` | 117x121 | yes | The image inside `NEW-Favicon.ico`, decoded to PNG. Source for `tools/dev/build-favicon.php`. |
@@ -37,8 +37,12 @@ mid-surfaces. All tokens live in `tools/dev/build-brand-css.php`.
 
 ## Open issues
 
-- **The hero art is 1376px wide.** Sharp at normal density; a 2x (2752px)
-  export would stay crisp on high-density desktop screens.
+- **Header logo is cut from generated banner art.** A proper transparent
+  export of the horizontal lockup (SVG, or PNG at 2x) would be crisper and
+  would avoid the black-point clean-up in `build-logo-lockup.php`.
+- **The header ignores `PS_LOGO`.** `templates/_partials/header.tpl` points at
+  the lockup directly, so changing the logo in the back office will not change
+  the storefront header. Emails and invoices still use `logo.png`.
 - **Other drafts, not used:** a 1024x1024 square of the same art
   (`Gemini_Generated_Image_uflzt5uflzt5uflz.jpeg`, here in brand/); in
   Downloads, a 1856x576 wide banner with the

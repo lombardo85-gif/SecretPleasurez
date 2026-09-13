@@ -59,7 +59,10 @@
    <div class="container">  
       <div class="col-md-4 hidden-sm-down" id="_desktop_logo">
           <a href="{$urls.base_url}" class="header-logo">
-            <img class="logo img-responsive" src="{$shop.logo}" alt="{$shop.name}">
+            {* Wide lockup cut from the brand banner by tools/dev/build-logo-lockup.php:
+               the wordmark reads far larger than the stacked PS_LOGO at the same
+               header height. PS_LOGO is kept for emails and invoices. *}
+            <img class="logo img-responsive" src="{$urls.theme_assets}img/spz-logo-lockup.png" width="630" height="200" alt="{$shop.name}">
           </a>
        </div>
     <div class="col-md-4 col-sm-12 left-logo">

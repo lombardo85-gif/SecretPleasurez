@@ -25,3 +25,7 @@ tools/feed-import/var/
 
 # Python bytecode from host-side tools
 __pycache__/
+
+# PrestaShop combines theme CSS/JS into here at runtime (CCC).
+assets/cache/*
+!assets/cache/index.php

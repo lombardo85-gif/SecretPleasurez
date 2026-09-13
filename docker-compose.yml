@@ -74,6 +74,10 @@ services:
       - ./dependencies:/opt/spz/dependencies
       - ./brand:/opt/spz/brand:ro
 
+      # Modules written for this store. PrestaShop loads modules only from
+      # /modules/, so each is mounted there by name.
+      - ./custom-modules/spzpromos:/var/www/html/modules/spzpromos
+
   phpmyadmin:
     image: phpmyadmin:5
     container_name: spz-pma
