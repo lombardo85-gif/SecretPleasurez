@@ -1,0 +1,22 @@
+{
+  "_comment": "Attaches photos to the 2022 catalogue. That feed only names image files, whose host (secretpleasurez.com/imgs) is dead, but it carries UPCs. The 2023 feed has live CloudFront image URLs keyed by UPC. var/feeds/upc-image-map.csv is the join of the two: product reference -> image URL. Rebuild it with tools/dev/build-upc-image-map.py if either feed changes.",
+
+  "feed": {
+    "format": "csv",
+    "source": "var/feeds/upc-image-map.csv",
+    "delimiter": ",",
+    "enclosure": "\"",
+    "encoding": "UTF-8"
+  },
+
+  "mapping": {
+    "sku": "reference",
+    "image": "image_url"
+  },
+
+  "pricing": {
+    "default_markup_percent": 65.0
+  },
+
+  "runtime": { "log_dir": "var/log", "memory_limit": "1024M" }
+}

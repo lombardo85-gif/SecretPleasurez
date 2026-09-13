@@ -111,6 +111,26 @@ every registered PrestaShop image type gets a derivative generated — skipping
 those leaves broken thumbnails across the storefront. Products that already
 have an image are skipped unless you pass `--overwrite`.
 
+### Photos for the 2022 catalogue, via UPC
+
+The loaded 2022 feed names images only by filename, and their old host is gone.
+The 2023 feed has live CloudFront photos keyed by UPC, so the two are joined on
+barcode. `tools/dev/build-upc-image-map.py` (run on the host) writes
+`var/feeds/upc-image-map.csv`; `config/images-by-upc.json` feeds it to the image
+importer. 13,998 of 16,663 products match.
+
+```bash
+python tools/dev/build-upc-image-map.py
+docker exec -w /opt/spz/tools/feed-import spz-shop   php import-images.php --config=config/images-by-upc.json --from-url --limit=500
+```
+
+### Going live
+
+Imported products stay inactive until they are worth showing.
+`tools/dev/activate-ready-products.php` activates anything in stock with at least
+one photo, and adds every live product to the Home category, which is what the
+homepage product block reads. It is idempotent - run it after each image batch.
+
 ## Scheduling
 
 On this Windows host, schedule `schedule/run-sync.ps1` with Task Scheduler
