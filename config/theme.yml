@@ -53,8 +53,24 @@ assets:
         path: assets/css/spz-brand.css
         media: all
         priority: 1000
+      # Design layer: type, components, interaction. Palette tokens come
+      # from spz-brand.css, so this loads after it.
+      - id: spz-modern-style
+        path: assets/css/spz-modern.css
+        media: all
+        priority: 1010
    js:
      all:
+       # In <head>, so the store is hidden before first paint until the
+       # visitor confirms they are 18+. Self-contained.
+       - id: spz-age-gate
+         path: assets/js/spz-age-gate.js
+         priority: 1
+         position: head
+       - id: spz-modern-script
+         path: assets/js/spz-modern.js
+         priority: 1000
+         position: bottom
        - id: owl-carousel-theme
          path: assets/js/owl.carousel.js
          priority: 610

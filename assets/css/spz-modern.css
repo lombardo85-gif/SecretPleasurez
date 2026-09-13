@@ -1,0 +1,1227 @@
+/*
+ * Secret Pleasurez — design layer ("midnight boutique"). Hand-written.
+ *
+ * Load order: theme.css -> custom.css -> spz-brand.css -> this file.
+ * spz-brand.css is generated and owns every palette colour as a token; this
+ * file owns shape, type, components and interaction, and references colours
+ * only through those tokens. Change the palette in
+ * tools/dev/build-brand-css.php, never here.
+ *
+ * Modern layer, all progressive: self-hosted variable fonts, cross-document
+ * view transitions, a compact glass header, rounded product cards on a light
+ * photo well, loading shimmers, scroll reveal, a phone bottom bar, a sticky
+ * phone add-to-cart and an 18+ age confirmation. Each honours
+ * prefers-reduced-motion, and the store works unchanged if the scripts fail.
+ */
+
+/* ------------------------------------------------------------------ *
+ * Fonts — self-hosted (SIL Open Font License). No request to Google:
+ * for an adult retailer a third-party font call would hand every
+ * visitor's IP address to another company.
+ * ------------------------------------------------------------------ */
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url("../fonts/plus-jakarta-sans-normal-latin.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  font-style: italic;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url("../fonts/plus-jakarta-sans-italic-latin.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Fraunces";
+  font-style: normal;
+  font-weight: 300 800;
+  font-display: swap;
+  src: url("../fonts/fraunces-normal-latin.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Fraunces";
+  font-style: italic;
+  font-weight: 300 800;
+  font-display: swap;
+  src: url("../fonts/fraunces-italic-latin.woff2") format("woff2");
+}
+
+:root {
+  color-scheme: dark;
+  accent-color: var(--spz-fill);
+
+  --spz-font-ui: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --spz-font-display: "Fraunces", Georgia, "Times New Roman", serif;
+
+  --spz-radius-sm: 10px;
+  --spz-radius: 14px;
+  --spz-radius-lg: 20px;
+  --spz-radius-xl: 28px;
+  --spz-radius-pill: 999px;
+
+  --spz-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --spz-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 14px 34px -16px rgba(0, 0, 0, 0.75);
+  --spz-shadow-float: 0 30px 60px -24px rgba(0, 0, 0, 0.85);
+  --spz-glow: 0 0 0 1px rgba(206, 15, 105, 0.45), 0 22px 44px -20px rgba(206, 15, 105, 0.55);
+  --spz-glass: rgba(13, 10, 18, 0.78);
+  --spz-blur: saturate(160%) blur(18px);
+}
+
+/* Smooth page-to-page transitions within the store. Browsers without
+   cross-document view transitions simply navigate as normal. */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+::selection {
+  background: var(--spz-fill);
+  color: #fff;
+}
+
+html {
+  scrollbar-color: var(--spz-border-strong) var(--spz-bg);
+}
+
+/* ------------------------------------------------------------------ *
+ * Base
+ * ------------------------------------------------------------------ */
+body {
+  background: var(--spz-bg) !important;
+  color: var(--spz-text-muted) !important;
+  font-family: var(--spz-font-ui) !important;
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* The theme sets Roboto on dozens of selectors. :where() keeps this at the
+   specificity of `body`, so the display-font rules below still win, and the
+   :not() list leaves icon fonts alone. */
+body :where(:not(i, svg, svg *, .material-icons, .fa, [class*="fa-"], [class*="icon"])) {
+  font-family: var(--spz-font-ui) !important;
+}
+
+h1,
+h2,
+.h1,
+.h2,
+.main-title,
+.block-category h1,
+#product h1.h1,
+.page-header h1,
+.spz-age-gate__title {
+  font-family: var(--spz-font-display) !important;
+  font-weight: 560 !important;
+  font-optical-sizing: auto;
+  letter-spacing: -0.012em !important;
+  line-height: 1.12 !important;
+  color: var(--spz-text) !important;
+  text-transform: none !important;
+}
+
+h3,
+h4,
+h5,
+h6,
+.h3,
+.h4,
+.h5,
+.h6 {
+  color: var(--spz-text) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+}
+
+a {
+  color: var(--spz-text-muted);
+  transition: color 0.2s var(--spz-ease);
+}
+
+/* ------------------------------------------------------------------ *
+ * Header
+ * ------------------------------------------------------------------ */
+#header {
+  background: var(--spz-bg) !important;
+  position: relative;
+  z-index: 1020;
+}
+
+#header .header-nav {
+  background: var(--spz-bg-deep) !important;
+  border-bottom: 1px solid var(--spz-border) !important;
+  font-size: 13px;
+}
+
+#header .header-nav,
+#header .header-nav a,
+#header .header-nav span,
+#header .header-nav p,
+#header .header-nav .desc {
+  color: var(--spz-text-muted) !important;
+}
+
+#header .header-top {
+  background: transparent !important;
+  border-bottom: 1px solid var(--spz-border) !important;
+}
+
+/* Pill search with an inline gradient button. */
+#search_widget form {
+  position: relative;
+}
+
+#search_widget form input[type="text"],
+#header #search_widget.search-widget:hover form input[type="text"] {
+  background: var(--spz-surface-2) !important;
+  border: 1px solid var(--spz-border-strong) !important;
+  border-radius: var(--spz-radius-pill) !important;
+  color: var(--spz-text) !important;
+  height: 48px !important;
+  padding: 0 58px 0 22px !important;
+  font-size: 15px !important;
+  box-shadow: none !important;
+  transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+}
+
+#search_widget form input[type="text"]::placeholder {
+  color: var(--spz-text-faint) !important;
+  opacity: 1;
+}
+
+#search_widget form input[type="text"]:focus {
+  background: var(--spz-surface) !important;
+  border-color: var(--spz-accent) !important;
+  box-shadow: 0 0 0 4px rgba(76, 184, 255, 0.18) !important;
+}
+
+#search_widget form button[type="submit"] {
+  position: absolute !important;
+  top: 50% !important;
+  right: 5px !important;
+  left: auto !important;
+  transform: translateY(-50%);
+  width: 38px !important;
+  height: 38px !important;
+  padding: 0 !important;
+  display: grid !important;
+  place-items: center;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background: var(--spz-gradient-cta) !important;
+  color: #fff !important;
+}
+
+#search_widget form button[type="submit"] i,
+#search_widget form button[type="submit"]::before {
+  color: #fff !important;
+  font-size: 20px !important;
+  line-height: 1 !important;
+}
+
+.cart-products-count,
+.blockcart .cart-products-count {
+  background: var(--spz-gradient-cta) !important;
+  color: #fff !important;
+  border-radius: var(--spz-radius-pill) !important;
+  font-weight: 700 !important;
+  min-width: 20px;
+  line-height: 20px !important;
+  text-align: center;
+  padding: 0 6px !important;
+}
+
+/* Compact glass bar once the full header has scrolled away (desktop). */
+@media (min-width: 768px) {
+  html.spz-stuck #header .header-top {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1030;
+    padding-block: 8px !important;
+    background: var(--spz-glass) !important;
+    -webkit-backdrop-filter: var(--spz-blur);
+    backdrop-filter: var(--spz-blur);
+    box-shadow: 0 12px 30px -18px rgba(0, 0, 0, 0.9);
+    animation: spz-drop 0.35s var(--spz-ease) both;
+  }
+
+  html.spz-stuck #header .header-top img.logo,
+  html.spz-stuck #header .header-top #_desktop_logo img {
+    max-height: 46px !important;
+    width: auto !important;
+  }
+}
+
+@keyframes spz-drop {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: none;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Main menu
+ * ------------------------------------------------------------------ */
+#_desktop_top_menu {
+  background: transparent !important;
+}
+
+#_desktop_top_menu .top-menu > li > a {
+  position: relative;
+  color: var(--spz-text) !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.01em !important;
+  text-transform: none !important;
+  padding-block: 14px !important;
+}
+
+/* Gradient underline that draws in from the left. */
+#_desktop_top_menu .top-menu > li > a::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 6px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--spz-gradient);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s var(--spz-ease);
+}
+
+#_desktop_top_menu .top-menu > li > a:hover::after,
+#_desktop_top_menu .top-menu > li.current > a::after {
+  transform: scaleX(1);
+}
+
+#_desktop_top_menu .popover,
+#_desktop_top_menu .sub-menu {
+  background: var(--spz-surface) !important;
+  border: 1px solid var(--spz-border) !important;
+  border-radius: var(--spz-radius-lg) !important;
+  box-shadow: var(--spz-shadow-float) !important;
+}
+
+#_desktop_top_menu .sub-menu a {
+  color: var(--spz-text-muted) !important;
+}
+
+/* ------------------------------------------------------------------ *
+ * Homepage
+ * ------------------------------------------------------------------ */
+#trend-slideshow-home,
+.nivoSlider {
+  border-radius: var(--spz-radius-lg);
+  overflow: hidden;
+}
+
+.main-title,
+.products-section-title {
+  font-size: clamp(1.6rem, 1.1rem + 1.6vw, 2.4rem) !important;
+}
+
+.titles .main-title::after,
+.head-title .main-title::after,
+.products-section-title::after {
+  content: "";
+  display: block;
+  width: 72px;
+  height: 3px;
+  margin: 14px auto 0;
+  border-radius: 3px;
+  background: var(--spz-gradient);
+}
+
+/* ------------------------------------------------------------------ *
+ * Product cards
+ * ------------------------------------------------------------------ */
+.product-miniature .thumbnail-container {
+  background: var(--spz-surface) !important;
+  border: 1px solid var(--spz-border) !important;
+  border-radius: var(--spz-radius-lg) !important;
+  box-shadow: var(--spz-shadow) !important;
+  overflow: hidden;
+  transition: transform 0.35s var(--spz-ease), box-shadow 0.35s var(--spz-ease), border-color 0.35s var(--spz-ease);
+}
+
+/* Product photos are shot on white; a soft light well presents them as
+   intended instead of as harsh white rectangles on a dark page. */
+/* Only the image area gets the well. .thumbnail-inner also wraps the title
+   and price, which put light text on the light well (1.02:1). */
+.product-miniature .thumbnail-inner {
+  background: transparent !important;
+}
+
+.product-miniature .thumbnail-image-inner {
+  background: var(--spz-well) !important;
+}
+
+.product-miniature .product-thumbnail {
+  display: block;
+  aspect-ratio: 1 / 1;
+  background-color: var(--spz-well) !important;
+  overflow: hidden;
+}
+
+.product-miniature .product-thumbnail img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain;
+  padding: 7%;
+  mix-blend-mode: multiply;
+  transition: transform 0.6s var(--spz-ease);
+}
+
+@media (hover: hover) {
+  .product-miniature .thumbnail-container:hover {
+    transform: translateY(-4px);
+    border-color: rgba(206, 15, 105, 0.45) !important;
+    box-shadow: var(--spz-glow) !important;
+  }
+
+  .product-miniature .thumbnail-container:hover .product-thumbnail img {
+    transform: scale(1.045);
+  }
+}
+
+.product-miniature .product-description {
+  background: transparent !important;
+  padding: 14px 16px 18px !important;
+}
+
+/* Titles were near-black on near-black (1.00:1). */
+.product-miniature .product-title,
+.product-miniature .product-title a {
+  font-family: var(--spz-font-ui) !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  line-height: 1.35 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  color: var(--spz-text) !important;
+}
+
+.product-miniature .price {
+  font-size: 16px !important;
+  font-weight: 700 !important;
+}
+
+.product-miniature .regular-price,
+.product-prices .regular-price {
+  color: var(--spz-text-faint) !important;
+  text-decoration: line-through;
+}
+
+.product-flags .product-flag {
+  border-radius: var(--spz-radius-pill) !important;
+  padding: 5px 11px !important;
+  min-width: 0 !important;
+  height: auto !important;
+  font: 700 11px/1 var(--spz-font-ui) !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  box-shadow: 0 6px 16px -8px rgba(0, 0, 0, 0.6);
+}
+
+/* "New" was white on green at 3.00:1; glass badge reads on any photo. */
+.product-flags .product-flag.new,
+.product-flags .product-flag.pack,
+.product-flags .product-flag.online-only {
+  background: rgba(13, 10, 18, 0.84) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.product-miniature .highlighted-informations {
+  background: transparent !important;
+}
+
+.product-miniature .quick-view {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  border-radius: var(--spz-radius-pill) !important;
+  background: rgba(13, 10, 18, 0.86) !important;
+  color: #fff !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+.product-miniature .quick-view i {
+  color: #fff !important;
+}
+
+/* ------------------------------------------------------------------ *
+ * Buttons
+ * ------------------------------------------------------------------ */
+.btn-primary,
+.btn.btn-primary,
+.add-to-cart,
+.product-add-to-cart .add-to-cart {
+  background: var(--spz-gradient-cta) !important;
+  background-size: 160% 100% !important;
+  background-position: 0% 50% !important;
+  color: #fff !important;
+  border: 0 !important;
+  border-radius: var(--spz-radius-pill) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.02em !important;
+  text-transform: none !important;
+  min-height: 46px;
+  padding: 12px 26px !important;
+  box-shadow: 0 12px 26px -12px rgba(206, 15, 105, 0.7) !important;
+  transition: background-position 0.5s var(--spz-ease), transform 0.2s var(--spz-ease), box-shadow 0.3s var(--spz-ease) !important;
+}
+
+/* The add-to-cart label was grey on magenta (1.19:1). */
+.btn-primary *,
+.add-to-cart *,
+.add-to-cart i {
+  color: #fff !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus-visible,
+.add-to-cart:hover,
+.add-to-cart:focus-visible {
+  background-position: 100% 50% !important;
+  transform: translateY(-1px);
+  box-shadow: 0 16px 32px -12px rgba(109, 79, 214, 0.65) !important;
+}
+
+.btn-primary:active,
+.add-to-cart:active {
+  transform: scale(0.98);
+}
+
+.btn-primary:disabled,
+.btn-primary.disabled,
+.add-to-cart:disabled {
+  opacity: 0.5 !important;
+  box-shadow: none !important;
+  transform: none;
+  cursor: not-allowed;
+}
+
+.btn-secondary,
+.btn-tertiary {
+  background: var(--spz-surface-2) !important;
+  color: var(--spz-text) !important;
+  border: 1px solid var(--spz-border-strong) !important;
+  border-radius: var(--spz-radius-pill) !important;
+}
+
+.btn-secondary:hover,
+.btn-tertiary:hover {
+  border-color: var(--spz-accent) !important;
+}
+
+/* ------------------------------------------------------------------ *
+ * Forms, dropdowns and dialogs — dark, so no light panel is left for the
+ * inverted text colours to disappear on.
+ * ------------------------------------------------------------------ */
+.form-control,
+select,
+textarea,
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="tel"],
+input[type="search"],
+.custom-select,
+#quantity_wanted {
+  background: var(--spz-surface-2) !important;
+  color: var(--spz-text) !important;
+  border: 1px solid var(--spz-border-strong) !important;
+  border-radius: var(--spz-radius-sm) !important;
+  box-shadow: none !important;
+}
+
+.form-control::placeholder,
+input::placeholder,
+textarea::placeholder {
+  color: var(--spz-text-faint) !important;
+  opacity: 1;
+}
+
+.form-control:focus,
+select:focus,
+textarea:focus,
+input:focus {
+  border-color: var(--spz-accent) !important;
+  box-shadow: 0 0 0 4px rgba(76, 184, 255, 0.18) !important;
+}
+
+.input-group-addon,
+.bootstrap-touchspin .btn-touchspin,
+.bootstrap-touchspin .input-group-btn-vertical .btn {
+  background: var(--spz-surface-2) !important;
+  color: var(--spz-text) !important;
+  border-color: var(--spz-border-strong) !important;
+}
+
+label,
+.form-control-label {
+  color: var(--spz-text-muted) !important;
+}
+
+.dropdown-menu,
+.popover,
+.modal-content {
+  background: var(--spz-surface) !important;
+  color: var(--spz-text-muted) !important;
+  border: 1px solid var(--spz-border) !important;
+  border-radius: var(--spz-radius-lg) !important;
+  box-shadow: var(--spz-shadow-float) !important;
+}
+
+.dropdown-item,
+.dropdown-menu a,
+.dropdown-menu .select-list {
+  background: transparent !important;
+  color: var(--spz-text-muted) !important;
+}
+
+.dropdown-item:hover,
+.dropdown-menu a:hover,
+.dropdown-menu .select-list:hover {
+  background: var(--spz-surface-2) !important;
+  color: var(--spz-text) !important;
+}
+
+.modal-header,
+.modal-footer {
+  border-color: var(--spz-border) !important;
+}
+
+.modal-title,
+.modal-content .h6 {
+  color: var(--spz-text) !important;
+}
+
+.modal-backdrop.in,
+.modal-backdrop.show {
+  background: var(--spz-bg-deep) !important;
+  opacity: 0.72 !important;
+}
+
+.modal .close {
+  color: var(--spz-text) !important;
+  text-shadow: none !important;
+  opacity: 0.8;
+}
+
+/* ------------------------------------------------------------------ *
+ * Breadcrumb and category listing
+ * ------------------------------------------------------------------ */
+.breadcrumb,
+.breadcrumb li,
+.breadcrumb a {
+  background: transparent !important;
+  color: var(--spz-text-faint) !important;
+}
+
+.breadcrumb li:last-child,
+.breadcrumb li:last-child a,
+.breadcrumb li:last-child span {
+  color: var(--spz-text) !important;
+}
+
+.block-category {
+  background: var(--spz-surface) !important;
+  border: 1px solid var(--spz-border) !important;
+  border-radius: var(--spz-radius-lg) !important;
+  padding: 28px 32px !important;
+  min-height: 0 !important;
+}
+
+.block-category h1 {
+  font-size: clamp(1.8rem, 1.3rem + 1.6vw, 2.6rem) !important;
+  margin: 0 !important;
+}
+
+.products-selection,
+.products-selection p,
+.total-products p,
+.sort-by,
+.showing {
+  color: var(--spz-text-muted) !important;
+}
+
+p.h6,
+.facet-title,
+#search_filters .facet .facet-title {
+  color: var(--spz-text) !important;
+  font-weight: 700 !important;
+}
+
+.products-sort-order .select-title {
+  background: var(--spz-surface-2) !important;
+  color: var(--spz-text) !important;
+  border: 1px solid var(--spz-border-strong) !important;
+  border-radius: var(--spz-radius-pill) !important;
+  padding: 10px 18px !important;
+  box-shadow: none !important;
+}
+
+#search_filters,
+.block-categories {
+  background: var(--spz-surface) !important;
+  border: 1px solid var(--spz-border) !important;
+  border-radius: var(--spz-radius-lg) !important;
+  box-shadow: none !important;
+}
+
+#search_filters .facet-label,
+#search_filters .facet-label a,
+.block-categories a {
+  color: var(--spz-text-muted) !important;
+}
+
+#search_filters .facet-label a:hover {
+  color: var(--spz-text) !important;
+}
+
+.active_filters {
+  background: var(--spz-surface) !important;
+  border-radius: var(--spz-radius) !important;
+}
+
+.filter-block {
+  background: var(--spz-surface-2) !important;
+  color: var(--spz-text) !important;
+  border-radius: var(--spz-radius-pill) !important;
+}
+
+.pagination .page-list {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.pagination a {
+  display: inline-grid;
+  place-items: center;
+  min-width: 38px;
+  padding: 6px 12px !important;
+  border-radius: var(--spz-radius-pill) !important;
+  color: var(--spz-text-muted) !important;
+}
+
+.pagination .current a {
+  background: var(--spz-gradient-cta) !important;
+  color: #fff !important;
+}
+
+/* ------------------------------------------------------------------ *
+ * Product page
+ * ------------------------------------------------------------------ */
+.product-cover {
+  background: var(--spz-well) !important;
+  border: 1px solid var(--spz-border);
+  border-radius: var(--spz-radius-xl) !important;
+  overflow: hidden;
+}
+
+.product-cover img {
+  mix-blend-mode: multiply;
+}
+
+.product-images > li.thumb-container > .thumb {
+  background: var(--spz-well) !important;
+  border: 2px solid transparent !important;
+  border-radius: var(--spz-radius-sm) !important;
+}
+
+.product-images > li.thumb-container > .thumb.selected,
+.product-images > li.thumb-container > .thumb:hover {
+  border-color: var(--spz-fill) !important;
+}
+
+#product h1.h1 {
+  font-size: clamp(1.7rem, 1.2rem + 1.8vw, 2.6rem) !important;
+  margin-bottom: 12px !important;
+}
+
+.product-prices .current-price span {
+  font-size: 1.9rem !important;
+  font-weight: 700 !important;
+}
+
+.product-information,
+.product-description,
+.product-description p,
+#product-description-short {
+  color: var(--spz-text-muted) !important;
+  line-height: 1.7;
+}
+
+.product-add-to-cart .product-quantity {
+  display: flex !important;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.product-add-to-cart .add {
+  flex: 1 1 220px;
+}
+
+.product-add-to-cart .add-to-cart {
+  width: 100%;
+  justify-content: center;
+}
+
+.tabs {
+  background: var(--spz-surface) !important;
+  border: 1px solid var(--spz-border) !important;
+  border-radius: var(--spz-radius-lg) !important;
+  padding: 8px 24px 24px !important;
+  box-shadow: none !important;
+}
+
+.tabs .nav-tabs {
+  border-bottom: 1px solid var(--spz-border) !important;
+}
+
+.tabs .nav-tabs .nav-link {
+  background: transparent !important;
+  border: 0 !important;
+  color: var(--spz-text-muted) !important;
+  font-weight: 600 !important;
+  padding: 14px 4px !important;
+  margin-right: 22px;
+}
+
+.tabs .nav-tabs .nav-link.active,
+.tabs .nav-tabs .nav-link:hover {
+  color: var(--spz-text) !important;
+  box-shadow: inset 0 -2px 0 var(--spz-fill) !important;
+}
+
+/* ------------------------------------------------------------------ *
+ * Footer
+ * ------------------------------------------------------------------ */
+#footer,
+.footer-container,
+.footer-before,
+.footer-after {
+  background: var(--spz-bg-deep) !important;
+}
+
+#footer {
+  border-top: 1px solid var(--spz-border);
+  margin-top: 48px;
+}
+
+#footer h4,
+#footer .h3,
+#footer .h4,
+#footer .title,
+#footer p.h3,
+#footer .block-contact-title {
+  color: var(--spz-text) !important;
+}
+
+#footer a,
+#footer p,
+#footer li,
+#footer .cms-page-link,
+#footer .block-contact,
+#footerbottomleft-text,
+#footerbottomleft-text .time,
+#footerbottomleft-text .time-open {
+  color: var(--spz-text-muted) !important;
+}
+
+#footer a:hover,
+#footer .cms-page-link:hover {
+  color: var(--spz-accent) !important;
+}
+
+/* ------------------------------------------------------------------ *
+ * Fixes found by the contrast audit
+ * ------------------------------------------------------------------ */
+
+/* Customer Reassurance paints black text from its own stylesheet, which the
+   palette generator does not scan (1.07:1 on the dark page). */
+.blockreassurance_product .block-title {
+  color: var(--spz-text) !important;
+}
+
+.blockreassurance_product p,
+.blockreassurance_product span:not(.block-title) {
+  color: var(--spz-text-muted) !important;
+}
+
+/* Slider dots showed their numbers as text on light dots (1.13:1). The
+   numbers go; the dots become pills, with the gradient on the active one. */
+.nivo-controlNav a {
+  width: 10px !important;
+  height: 10px !important;
+  margin: 0 4px !important;
+  overflow: hidden;
+  border-radius: var(--spz-radius-pill) !important;
+  background: rgba(255, 255, 255, 0.4) !important;
+  color: transparent !important;
+  font-size: 0 !important;
+  text-indent: -9999px;
+  transition: width 0.3s var(--spz-ease), background 0.3s var(--spz-ease);
+}
+
+.nivo-controlNav a.active {
+  width: 28px !important;
+  background: var(--spz-gradient) !important;
+}
+
+/* The theme uppercases every <button>; the new controls are sentence case. */
+.spz-bottom-nav__item,
+.spz-sticky-atc__btn,
+.spz-age-gate button {
+  text-transform: none !important;
+  letter-spacing: normal !important;
+}
+
+/* ------------------------------------------------------------------ *
+ * Scroll reveal and photo shimmer. Both are opted in by spz-modern.js
+ * setting html.spz-enhanced, so a failed script can never leave content
+ * hidden or a placeholder spinning.
+ * ------------------------------------------------------------------ */
+html.spz-enhanced .spz-reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.7s var(--spz-ease), transform 0.7s var(--spz-ease);
+}
+
+html.spz-enhanced .spz-reveal.spz-in {
+  opacity: 1;
+  transform: none;
+}
+
+html.spz-enhanced .product-miniature:not(.spz-img-ready) .product-thumbnail,
+html.spz-enhanced .product-cover:not(.spz-img-ready) {
+  background-image: linear-gradient(100deg, rgba(22, 17, 29, 0) 20%, rgba(22, 17, 29, 0.09) 40%, rgba(22, 17, 29, 0) 60%) !important;
+  background-size: 220% 100% !important;
+  animation: spz-shimmer 1.3s linear infinite;
+}
+
+@keyframes spz-shimmer {
+  from {
+    background-position: 120% 0;
+  }
+  to {
+    background-position: -120% 0;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Phone bottom bar
+ * ------------------------------------------------------------------ */
+.spz-bottom-nav {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .spz-bottom-nav {
+    position: fixed;
+    left: 10px;
+    right: 10px;
+    bottom: calc(10px + env(safe-area-inset-bottom));
+    z-index: 1040;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    padding: 6px;
+    background: rgba(22, 17, 29, 0.84);
+    border: 1px solid var(--spz-border);
+    border-radius: 22px;
+    box-shadow: 0 18px 40px -16px rgba(0, 0, 0, 0.85);
+    -webkit-backdrop-filter: var(--spz-blur);
+    backdrop-filter: var(--spz-blur);
+  }
+
+  .spz-bottom-nav__item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    min-height: 50px;
+    padding: 8px 2px;
+    border: 0;
+    border-radius: 16px;
+    background: none;
+    color: var(--spz-text-muted) !important;
+    font: 600 11px/1 var(--spz-font-ui) !important;
+    text-decoration: none !important;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .spz-bottom-nav__item[aria-current="page"] {
+    background: var(--spz-surface-2);
+    color: var(--spz-text) !important;
+  }
+
+  .spz-bottom-nav__item:active {
+    transform: scale(0.94);
+  }
+
+  .spz-bottom-nav__badge {
+    position: absolute;
+    top: 4px;
+    left: calc(50% + 6px);
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: var(--spz-radius-pill);
+    background: var(--spz-fill);
+    color: #fff;
+    font: 700 11px/18px var(--spz-font-ui);
+    text-align: center;
+  }
+
+  html.spz-has-bottom-nav body {
+    padding-bottom: calc(84px + env(safe-area-inset-bottom)) !important;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Phone sticky add-to-cart, shown once the real button leaves the screen
+ * ------------------------------------------------------------------ */
+.spz-sticky-atc {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .spz-sticky-atc {
+    position: fixed;
+    left: 10px;
+    right: 10px;
+    bottom: calc(84px + env(safe-area-inset-bottom));
+    z-index: 1039;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 10px 10px 16px;
+    background: rgba(22, 17, 29, 0.92);
+    border: 1px solid var(--spz-border);
+    border-radius: 20px;
+    box-shadow: 0 18px 40px -16px rgba(0, 0, 0, 0.85);
+    -webkit-backdrop-filter: var(--spz-blur);
+    backdrop-filter: var(--spz-blur);
+    opacity: 0;
+    transform: translateY(140%);
+    pointer-events: none;
+    transition: transform 0.35s var(--spz-ease), opacity 0.25s var(--spz-ease);
+  }
+
+  .spz-sticky-atc--show {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+  }
+
+  .spz-sticky-atc__info {
+    display: grid;
+    min-width: 0;
+  }
+
+  .spz-sticky-atc__name {
+    color: var(--spz-text);
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .spz-sticky-atc__price {
+    color: var(--spz-accent);
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  .spz-sticky-atc__btn {
+    flex: none;
+    margin-left: auto;
+    min-height: 46px;
+    padding: 0 20px;
+    border: 0;
+    border-radius: var(--spz-radius-pill);
+    background: var(--spz-gradient-cta);
+    color: #fff;
+    font: 700 14px/1 var(--spz-font-ui);
+    cursor: pointer;
+  }
+
+  .spz-sticky-atc__btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * 18+ age confirmation (spz-age-gate.js)
+ * ------------------------------------------------------------------ */
+html.spz-age-pending {
+  overflow: hidden;
+}
+
+/* Hide the store behind the gate, not just under it, so nothing flashes
+   before the visitor answers. visibility is inheritable-but-overridable,
+   which lets the gate itself stay visible. */
+html.spz-age-pending body > *:not(.spz-age-gate) {
+  visibility: hidden;
+}
+
+.spz-age-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  visibility: visible;
+  background:
+    radial-gradient(60% 50% at 18% 12%, rgba(48, 160, 240, 0.22), transparent 70%),
+    radial-gradient(55% 45% at 86% 88%, rgba(206, 15, 105, 0.3), transparent 70%),
+    rgba(8, 6, 12, 0.97);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  animation: spz-fade-in 0.35s var(--spz-ease) both;
+}
+
+.spz-age-gate--out {
+  animation: spz-fade-out 0.3s var(--spz-ease) both;
+}
+
+.spz-age-gate__panel {
+  width: min(440px, 100%);
+  padding: 36px 32px 32px;
+  text-align: center;
+  background: rgba(22, 17, 29, 0.9);
+  border: 1px solid var(--spz-border);
+  border-radius: var(--spz-radius-xl);
+  box-shadow: 0 40px 80px -30px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.spz-age-gate__logo {
+  display: block;
+  max-width: 220px;
+  height: auto;
+  margin: 0 auto 22px;
+  border-radius: 12px;
+}
+
+.spz-age-gate__eyebrow {
+  margin: 0 0 8px;
+  color: var(--spz-accent) !important;
+  font: 700 12px/1 var(--spz-font-ui) !important;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.spz-age-gate__title {
+  margin: 0 0 12px !important;
+  font-size: clamp(1.7rem, 1.3rem + 1.6vw, 2.2rem) !important;
+}
+
+.spz-age-gate__text {
+  margin: 0 0 26px;
+  color: var(--spz-text-muted) !important;
+  line-height: 1.6;
+}
+
+.spz-age-gate__actions {
+  display: grid;
+  gap: 10px;
+}
+
+.spz-age-gate__enter,
+.spz-age-gate__leave {
+  min-height: 50px;
+  border-radius: var(--spz-radius-pill);
+  font: 700 15px/1 var(--spz-font-ui) !important;
+  cursor: pointer;
+}
+
+.spz-age-gate__enter {
+  border: 0;
+  background: var(--spz-gradient-cta);
+  color: #fff;
+  box-shadow: 0 14px 30px -12px rgba(206, 15, 105, 0.7);
+}
+
+.spz-age-gate__leave {
+  border: 1px solid var(--spz-border-strong);
+  background: transparent;
+  color: var(--spz-text-muted);
+}
+
+.spz-age-gate button:focus-visible {
+  outline: 2px solid var(--spz-accent);
+  outline-offset: 3px;
+}
+
+@keyframes spz-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes spz-fade-out {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Reduced motion: keep every feature, drop the movement.
+ * ------------------------------------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  .spz-reveal,
+  .product-miniature .thumbnail-container,
+  .product-miniature .product-thumbnail img,
+  .spz-sticky-atc,
+  .spz-age-gate,
+  html.spz-stuck #header .header-top,
+  #_desktop_top_menu .top-menu > li > a::after {
+    transition: none !important;
+    animation: none !important;
+  }
+
+  html.spz-enhanced .spz-reveal {
+    opacity: 1;
+    transform: none;
+  }
+
+  html.spz-enhanced .product-miniature:not(.spz-img-ready) .product-thumbnail,
+  html.spz-enhanced .product-cover:not(.spz-img-ready) {
+    animation: none !important;
+  }
+}

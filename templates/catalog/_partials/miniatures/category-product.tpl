@@ -33,7 +33,7 @@
 				<img
 				  src = "{$product.cover.bySize.homecategory_default.url}"
 				  alt = "{if !empty($product.cover.legend)}{$product.cover.legend}{else}{$product.name|truncate:30:'...'}{/if}"
-				  data-full-size-image-url = "{$product.cover.large.url}"
+				  loading = "lazy" decoding = "async" data-full-size-image-url = "{$product.cover.large.url}"
 				>
 			  </a>
 			{/block}
