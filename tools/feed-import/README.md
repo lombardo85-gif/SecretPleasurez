@@ -4,19 +4,36 @@ Syncs a wholesaler CSV/XML feed into the PrestaShop catalog: creates new
 products, keeps prices and stock current, and retires products the supplier
 has dropped.
 
+## Where things live
+
+The container deliberately keeps tooling out of the document root:
+
+| Host | Container | Reachable over HTTP |
+| --- | --- | --- |
+| `tools/` | `/opt/spz/tools` | no |
+| `dependencies/` | `/opt/spz/dependencies` | no |
+| `.env`, `docker-compose.yml`, `.git/` | not mounted | no |
+| `templates/`, `assets/`, `config/`, `modules/`, `translations/`, `img/` | `/var/www/html/themes/PRS935/...` | yes |
+
+Earlier the whole repo was mounted at the theme path, which put `.env` -
+database and admin passwords - inside the web root. Only PrestaShop's
+`themes/.htaccess` denied it, and that file is Apache-only; nginx ignores
+`.htaccess`, so the same compose file on an nginx host would have served it
+to anyone. Keep secrets out of the mounted theme directories.
+
 ## Running it
 
 ```bash
 # always dry-run a new feed first — it writes nothing
-docker exec -w /var/www/html/themes/PRS935/tools/feed-import spz-shop \
+docker exec -w /opt/spz/tools/feed-import spz-shop \
   php import.php --config=config/acme.json --dry-run
 
 # first 50 rows only, to check a new supplier's column mapping
-docker exec -w /var/www/html/themes/PRS935/tools/feed-import spz-shop \
+docker exec -w /opt/spz/tools/feed-import spz-shop \
   php import.php --config=config/acme.json --dry-run --limit=50
 
 # for real
-docker exec -w /var/www/html/themes/PRS935/tools/feed-import spz-shop \
+docker exec -w /opt/spz/tools/feed-import spz-shop \
   php import.php --config=config/acme.json
 ```
 
@@ -83,7 +100,7 @@ Images are attached separately, after the catalog exists. Image work is slow
 and IO-bound, and a failed thumbnail should never hold up a price sync.
 
 ```bash
-docker exec -w /var/www/html/themes/PRS935/tools/feed-import spz-shop \
+docker exec -w /opt/spz/tools/feed-import spz-shop \
   php import-images.php --config=config/supplier.json \
                         --images-dir=/mnt/wp-uploads --dry-run
 ```
@@ -111,7 +128,7 @@ Inside the container the equivalent is plain cron:
 
 ```cron
 # prices and stock every 4 hours
-0 */4 * * * cd /var/www/html/themes/PRS935/tools/feed-import && php import.php --config=config/supplier.json --quiet
+0 */4 * * * cd /opt/spz/tools/feed-import && php import.php --config=config/supplier.json --quiet
 ```
 
 Logs land in `var/log/import-<timestamp>.log` (gitignored). Errors always go

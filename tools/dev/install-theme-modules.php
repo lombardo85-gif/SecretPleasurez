@@ -2,7 +2,8 @@
 /**
  * Install the theme's bundled modules into the shop.
  *
- * PRS935 ships its custom modules under themes/PRS935/dependencies/modules/,
+ * PRS935 ships its custom modules under dependencies/modules/, mounted at
+ * /opt/spz/dependencies outside the document root,
  * but PrestaShop only loads modules from /modules/. The theme cannot be
  * enabled until they are copied there and installed, because ThemeManager
  * hooks them by name and throws FailedToEnableThemeModuleException otherwise.
@@ -10,7 +11,7 @@
  * Safe to re-run: existing module directories are left alone unless --overwrite
  * is passed, and already-installed modules are skipped.
  *
- *   docker exec spz-shop php /var/www/html/themes/PRS935/tools/dev/install-theme-modules.php
+ *   docker exec spz-shop php /opt/spz/tools/dev/install-theme-modules.php
  */
 
 declare(strict_types=1);
@@ -27,9 +28,12 @@ $kernel->boot();
 $overwrite = in_array('--overwrite', $argv, true);
 $reinstall = in_array('--reinstall', $argv, true);
 
-$source = _PS_THEME_DIR_ . 'dependencies/modules';
+// The theme's bundled modules are mounted outside the document root, so
+// they are not reachable over HTTP. Fall back to the in-theme location for
+// an unhardened checkout.
+$source = '/opt/spz/dependencies/modules';
 if (!is_dir($source)) {
-    $source = '/var/www/html/themes/PRS935/dependencies/modules';
+    $source = _PS_THEME_DIR_ . 'dependencies/modules';
 }
 $target = _PS_MODULE_DIR_;
 

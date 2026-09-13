@@ -49,8 +49,30 @@ services:
       - "8080:80"
     volumes:
       - ps_data:/var/www/html
-      # Live-mount this repo as the theme PrestaShop will load.
-      - ./:/var/www/html/themes/PRS935
+
+      # Theme content only, mounted file-by-file on purpose.
+      #
+      # Mounting the repo root at the theme path put .env, .git,
+      # docker-compose.yml and the supplier configs INSIDE the document
+      # root. Nothing but PrestaShop's themes/.htaccess stood between them
+      # and the internet, and that file is wrapped in <IfModule
+      # mod_authz_core.c> - nginx ignores .htaccess entirely, so the same
+      # compose file on an nginx host would serve the database and admin
+      # passwords to anyone who asked for /themes/PRS935/.env.
+      - ./config:/var/www/html/themes/PRS935/config
+      - ./templates:/var/www/html/themes/PRS935/templates
+      - ./assets:/var/www/html/themes/PRS935/assets
+      - ./modules:/var/www/html/themes/PRS935/modules
+      - ./translations:/var/www/html/themes/PRS935/translations
+      - ./img:/var/www/html/themes/PRS935/img
+      - ./index.php:/var/www/html/themes/PRS935/index.php:ro
+      - ./preview.png:/var/www/html/themes/PRS935/preview.png:ro
+
+      # Tooling, feeds and secrets: outside the document root, so no web
+      # server config is load-bearing for keeping them private.
+      - ./tools:/opt/spz/tools
+      - ./dependencies:/opt/spz/dependencies
+      - ./brand:/opt/spz/brand:ro
 
   phpmyadmin:
     image: phpmyadmin:5

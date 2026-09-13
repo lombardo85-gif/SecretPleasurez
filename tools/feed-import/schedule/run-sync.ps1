@@ -39,6 +39,35 @@ if (-not (Test-Path $docker)) {
     exit 2
 }
 
+<#
+    Clear an orphaned AF_UNIX socket file.
+
+    Docker Desktop creates these under AppData and deletes them on a clean
+    exit. After an unclean one - a crash, a kill, or the out-of-disk event
+    that remounted its filesystem read-only - they survive as entries Windows
+    reports as "The file cannot be accessed by the system": undeletable, and
+    unusable. Docker then refuses to start at all, and the only options its
+    own dialog offers are Quit and "Reset to factory defaults", the latter
+    destroying every container, image and volume.
+
+    Renaming the parent directory does work, so that is what this does. The
+    sockets are recreated on the next start. Both directories must be cleared
+    in the same pass: fixing one just moves the failure to the next service.
+#>
+function Clear-StaleDockerSocketDir([string]$dir) {
+    if (-not (Test-Path -LiteralPath $dir)) { return }
+
+    $leaf = Split-Path $dir -Leaf
+    $stale = "$leaf.stale-" + (Get-Date -Format 'yyyyMMddHHmmss')
+    try {
+        Rename-Item -LiteralPath $dir -NewName $stale -Force -ErrorAction Stop
+        New-Item -ItemType Directory -Path $dir -Force | Out-Null
+        Write-Log "Cleared stale Docker socket dir: $dir"
+    } catch {
+        Write-Log "WARN could not clear $dir : $($_.Exception.Message)"
+    }
+}
+
 # Bring the engine up if the machine rebooted since the last run.
 & $docker info --format '{{.ServerVersion}}' *> $null
 if ($LASTEXITCODE -ne 0) {
@@ -52,8 +81,30 @@ if ($LASTEXITCODE -ne 0) {
         & $docker info --format '{{.ServerVersion}}' *> $null
     } while ($LASTEXITCODE -ne 0 -and (Get-Date) -lt $deadline)
 
+    # Still down: most often orphaned sockets rather than a slow start.
     if ($LASTEXITCODE -ne 0) {
-        Write-Log "FATAL Docker did not start within $StartupTimeoutSeconds s"
+        Write-Log 'Engine still down; clearing orphaned socket dirs and retrying once'
+        Get-Process 'Docker Desktop', 'com.docker.backend' -ErrorAction SilentlyContinue |
+            Stop-Process -Force -ErrorAction SilentlyContinue
+        Start-Sleep -Seconds 5
+
+        Clear-StaleDockerSocketDir "$env:LOCALAPPDATA\Docker\run"
+        Clear-StaleDockerSocketDir "$env:LOCALAPPDATA\docker-secrets-engine"
+
+        Start-Service 'com.docker.service' -ErrorAction SilentlyContinue
+        Start-Process 'C:\Program Files\Docker\Docker\Docker Desktop.exe'
+
+        # The named pipe appearing is a faster and more reliable readiness
+        # signal than `docker info`, which blocks rather than failing when
+        # the engine is absent.
+        $deadline = (Get-Date).AddSeconds($StartupTimeoutSeconds)
+        while (-not (Test-Path '\\.\pipe\dockerDesktopLinuxEngine') -and (Get-Date) -lt $deadline) {
+            Start-Sleep -Seconds 6
+        }
+    }
+
+    if (-not (Test-Path '\\.\pipe\dockerDesktopLinuxEngine')) {
+        Write-Log "FATAL Docker did not start within $StartupTimeoutSeconds s (after socket cleanup)"
         exit 2
     }
 }
@@ -72,7 +123,7 @@ if ($running -notcontains $Container) {
 }
 
 $importArgs = @(
-    'exec', '-w', '/var/www/html/themes/PRS935/tools/feed-import', $Container,
+    'exec', '-w', '/opt/spz/tools/feed-import', $Container,
     'php', 'import.php', "--config=$Config", '--quiet'
 )
 if ($DryRun) { $importArgs += '--dry-run' }

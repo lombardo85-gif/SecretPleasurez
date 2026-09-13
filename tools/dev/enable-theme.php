@@ -5,7 +5,7 @@
  * back office would install them.
  *
  * Run inside the container:
- *   docker exec spz-shop php /var/www/html/themes/PRS935/tools/dev/enable-theme.php
+ *   docker exec spz-shop php /opt/spz/tools/dev/enable-theme.php
  */
 
 declare(strict_types=1);
