@@ -468,6 +468,103 @@ a {
   text-underline-offset: 3px;
 }
 
+/* ------------------------------------------------------------------ *
+ * Brands directory (catalog/brands.tpl): A-Z index and text cards.
+ * ------------------------------------------------------------------ */
+.spz-brands-page__title {
+  margin: 0 0 18px;
+  font-family: var(--spz-font-display);
+  color: var(--spz-heading);
+}
+
+.spz-brands-page__index {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 28px;
+}
+
+.spz-brands-page__index .spz-chip {
+  min-width: 38px;
+  padding: 6px 10px;
+  font-size: 13px;
+  text-align: center;
+}
+
+.spz-brand-group {
+  margin-bottom: 28px;
+  scroll-margin-top: 110px;
+}
+
+.spz-brand-group__letter {
+  margin: 0 0 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--spz-border);
+  font-family: var(--spz-font-display);
+  font-size: 24px;
+  color: var(--spz-champagne);
+}
+
+.spz-brand-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.spz-brand-card__link {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  height: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--spz-border);
+  border-radius: 14px;
+  background: var(--spz-surface);
+  text-decoration: none !important;
+  transition: border-color 0.2s var(--spz-ease), box-shadow 0.2s var(--spz-ease);
+}
+
+.spz-brand-card__link:hover,
+.spz-brand-card__link:focus-visible {
+  border-color: var(--spz-accent);
+  box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.12);
+}
+
+.spz-brand-card__logo {
+  max-height: 40px;
+  width: auto;
+  margin-bottom: 4px;
+  align-self: flex-start;
+}
+
+.spz-brand-card__name {
+  color: var(--spz-text);
+  font-weight: 600;
+  line-height: 1.3;
+  /* The theme capitalises links; keep each brand's own spelling. */
+  text-transform: none;
+}
+
+.spz-brand-card__count {
+  color: var(--spz-text-muted);
+  font-size: 13px;
+  text-transform: none;
+}
+
+.spz-brand-card__link:hover .spz-brand-card__name,
+.spz-brand-card__link:focus-visible .spz-brand-card__name {
+  color: var(--spz-accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spz-brand-card__link {
+    transition: none;
+  }
+}
+
 .product-miniature .price {
   font-size: 16px !important;
   font-weight: 700 !important;

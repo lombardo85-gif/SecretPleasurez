@@ -22,21 +22,51 @@
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  * International Registered Trademark & Property of PrestaShop SA
  *}
+{*
+ * Brand directory, grouped by first letter with an A-Z index. Hundreds of
+ * brands have no logo, so the list is text-first (see miniatures/brand.tpl).
+ * Brands arrive sorted by name; anything not starting with A-Z is filed
+ * under "0-9".
+ *}
 {extends file=$layout}
 
 {block name='content'}
-  <section id="main">
+  <section id="main" class="spz-brands-page">
 
     {block name='brand_header'}
-      <h1>{l s='Brands' d='Shop.Theme.Catalog'}</h1>
+      <h1 class="spz-brands-page__title">{l s='Brands' d='Shop.Theme.Catalog'}</h1>
     {/block}
 
     {block name='brand_miniature'}
-      <ul>
-        {foreach from=$brands item=brand}
-          {include file='catalog/_partials/miniatures/brand.tpl' brand=$brand}
-        {/foreach}
-      </ul>
+      {assign var=spz_letters value=[]}
+      {foreach from=$brands item=brand}
+        {assign var=spz_letter value=$brand.name|truncate:1:'':true|upper}
+        {if ($spz_letter|regex_replace:'/^[A-Z]$/':'') !== ''}{assign var=spz_letter value='0-9'}{/if}
+        {$spz_letters[$spz_letter] = true}
+      {/foreach}
+
+      {if $spz_letters|count > 1}
+        <nav class="spz-brands-page__index" aria-label="{l s='Brands' d='Shop.Theme.Catalog'}: A-Z">
+          {foreach from=$spz_letters key=letter item=unused}
+            <a class="spz-chip" href="#brands-{$letter}">{$letter}</a>
+          {/foreach}
+        </nav>
+      {/if}
+
+      {assign var=spz_open value=''}
+      {foreach from=$brands item=brand}
+        {assign var=spz_letter value=$brand.name|truncate:1:'':true|upper}
+        {if ($spz_letter|regex_replace:'/^[A-Z]$/':'') !== ''}{assign var=spz_letter value='0-9'}{/if}
+        {if $spz_letter !== $spz_open}
+          {if $spz_open !== ''}</ul></section>{/if}
+          <section class="spz-brand-group" id="brands-{$spz_letter}" aria-labelledby="brands-{$spz_letter}-title">
+            <h2 class="spz-brand-group__letter" id="brands-{$spz_letter}-title">{$spz_letter}</h2>
+            <ul class="spz-brand-grid">
+          {assign var=spz_open value=$spz_letter}
+        {/if}
+        {include file='catalog/_partials/miniatures/brand.tpl' brand=$brand}
+      {/foreach}
+      {if $spz_open !== ''}</ul></section>{/if}
     {/block}
 
   </section>

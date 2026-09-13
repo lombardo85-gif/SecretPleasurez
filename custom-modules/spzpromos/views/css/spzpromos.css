@@ -460,6 +460,9 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  /* The theme capitalises links; brand names keep their own spelling
+     ("Adam and Eve", not "Adam And Eve"). */
+  text-transform: none;
 }
 
 .spz-brands__count {

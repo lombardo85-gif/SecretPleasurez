@@ -22,16 +22,19 @@
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  * International Registered Trademark & Property of PrestaShop SA
  *}
+{*
+ * One brand as a text card. PrestaShop substitutes a "No image available"
+ * picture (…/img/m/<lang>-default-….jpg) for brands without a logo; that
+ * placeholder is skipped rather than repeated hundreds of times.
+ *}
 {block name='brand_miniature_item'}
-  <li class="brand">
-    <div class="brand-img"><a href="{$brand.url}"><img src="{$brand.image}" alt="{$brand.name}"></a></div>
-    <div class="brand-infos">
-      <h3><a href="{$brand.url}">{$brand.name}</a></h3>
-      {$brand.text nofilter}
-    </div>
-    <div class="brand-products">
-      <a href="{$brand.url}">{$brand.nb_products}</a>
-      <a href="{$brand.url}">{l s='View products' d='Shop.Theme.Actions'}</a>
-    </div>
+  <li class="brand spz-brand-card">
+    <a class="spz-brand-card__link" href="{$brand.url}">
+      {if $brand.image && ($brand.image|regex_replace:'/^.*-default-.*$/':'') !== ''}
+        <img class="spz-brand-card__logo" src="{$brand.image}" alt="" loading="lazy" decoding="async">
+      {/if}
+      <span class="spz-brand-card__name">{$brand.name}</span>
+      <span class="spz-brand-card__count">{$brand.nb_products}</span>
+    </a>
   </li>
 {/block}
