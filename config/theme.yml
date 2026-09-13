@@ -46,6 +46,13 @@ assets:
      all:
       - id: owl-carousel-style
         path: assets/css/owl.carousel.css
+      # Brand palette. High priority so it loads after theme.css and wins
+      # on specificity ties. Generated from theme.css by inspecting which
+      # selectors use the stock red/orange accents - see the file header.
+      - id: spz-brand-palette
+        path: assets/css/spz-brand.css
+        media: all
+        priority: 1000
    js:
      all:
        - id: owl-carousel-theme
