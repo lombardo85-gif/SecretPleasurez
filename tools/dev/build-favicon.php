@@ -1,8 +1,12 @@
 <?php
 /**
- * Build img/favicon.ico from brand/NEW-Favico1.png.
+ * Build img/favicon.ico from brand/NEW-Favicon-source.png.
  *
- * The artwork is 107x98 — not square — on a dark tile. It is centred on a
+ * That source is the image inside the supplied brand/NEW-Favicon.ico, decoded
+ * to PNG because it is the only copy with transparency (brand/NEW-Favicon.png
+ * is really a BMP with no alpha).
+ *
+ * The artwork may not be square (the supplied one is 117x121). It is centred on a
  * transparent square canvas so it is not stretched, then resampled to 16, 32
  * and 48 px. The ICO container holds PNG-encoded images, supported by every
  * current browser and by Windows since Vista, which keeps alpha and size down.
@@ -20,7 +24,7 @@
 
 declare(strict_types=1);
 
-$source = $argv[1] ?? '/opt/spz/brand/NEW-Favico1.png';
+$source = $argv[1] ?? '/opt/spz/brand/NEW-Favicon-source.png';
 $target = '/var/www/html/img/favicon.ico';
 $sizes = [16, 32, 48];
 

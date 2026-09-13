@@ -53,11 +53,12 @@
 	  <div class="copyright_outer container">
 		<div class="row">
 			<div class="copyright">
-			{block name='copyright_link'}  
-			  <a class="_blank" href="http://www.prestashop.com" target="_blank">
-				{l s='%copyright% %year% - Ecommerce software by %prestashop%' sprintf=['%prestashop%' => 'PrestaShop™', '%year%' => 'Y'|date, '%copyright%' => '©'] d='Shop.Theme'}
-			  </a>
-			{/block}
+			{block name='copyright_link'}
+        {* Store copyright. Replaces the theme's "Ecommerce software by PrestaShop"
+           credit, which linked every page to prestashop.com; the AFL licence does
+           not require it. *}
+        <span class="spz-copyright">&copy; {'Y'|date} {$shop.name|escape:'html':'UTF-8'}</span>
+      {/block}
 			</div>
 		</div>
 	  </div>

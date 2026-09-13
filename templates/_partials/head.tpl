@@ -27,6 +27,10 @@
 {/block}
 {block name='head_ie_compatibility'}
   <meta http-equiv="x-ua-compatible" content="ie=edge">
+  {* Paints the phone browser's toolbar in the store ink and tells the
+     browser the page is dark, so form controls and scrollbars match. *}
+  <meta name="theme-color" content="#0B0B0D">
+  <meta name="color-scheme" content="dark">
 {/block}
 
 {block name='head_seo'}

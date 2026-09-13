@@ -430,13 +430,13 @@ foreach ($sources as $src) {
             }
         }
 
-        // Fills always carry white text (5.39:1 on --spz-fill), even when the
-        // theme already declared white: its declaration has no !important, so
-        // a generated neutral-text rule such as `.label { color: muted
-        // !important }` beats it. The cart's "Continue shopping" label showed
-        // exactly that - muted text on magenta at 2.57:1.
+        // Fills always carry ink text (5.55:1 on the pink; white would be
+        // 3.55:1 and fail), even when the theme declared its own colour: that
+        // declaration has no !important, so a generated neutral-text rule such
+        // as `.label { color: muted !important }` would beat it. The cart's
+        // "Continue shopping" label showed exactly that.
         if ($emittedFill) {
-            $line = 'color: #fff !important;';
+            $line = 'color: var(--spz-on-fill) !important;';
             if (!in_array($line, $byContext[$contextKey][$selector], true)) {
                 $byContext[$contextKey][$selector][] = $line;
                 ++$stats['fill-text'];
@@ -450,54 +450,56 @@ $header = <<<'CSS'
  * Secret Pleasurez palette layer — GENERATED, do not hand-edit.
  * Rebuild: docker exec spz-shop php /opt/spz/tools/dev/build-brand-css.php
  *
- * Direction: "midnight boutique". Tinted aubergine surfaces rather than flat
- * grey, soft off-white text, and the logo's cyan -> purple -> magenta
- * gradient kept for moments that matter.
+ * Palette supplied 2026-09-12 — the logo's own colours:
+ *   #0B0B0D ink   #00E5FF neon cyan   #FF2A85 neon pink
+ *   #E3C1AA champagne   #999999 grey
+ * Surfaces, borders and a near-white are derived tints of the ink, because
+ * the palette has no white and no mid-surfaces.
  *
- * Every text pairing is measured against WCAG AA (>= 4.5:1):
- *   text   #f4eff8 on bg #0d0a12 ....... 17.35   on surface-2 #201a2b 14.91
- *   muted  #b9afc6 on bg ...............  9.36   on surface-2          8.05
- *   faint  #8f859c on surface-2 ........  4.83
- *   accent #4cb8ff on bg ...............  8.99   on surface-2          7.72
- *   white  on fill #ce0f69 .............  5.39   on hover #b00c59      6.90
- *   white  on CTA gradient end #6d4fd6 .  5.62   (sRGB midpoint ~6.2)
- *   ink    #16111d on image well #f6f2f9  16.77
- *
- * Before this, 41% of text on a category page failed: body copy at 3.91:1,
- * page and filter titles near-black on near-black at 1.00:1, and the
- * add-to-cart label grey on magenta at 1.19:1.
+ * Roles follow measured WCAG contrast (AA: >= 4.5:1 text, >= 3:1 controls):
+ *   near-white #F2F2F4 on ink ........... 17.59   on surface-2 #1D1D23 15.00
+ *   champagne  #E3C1AA on ink ........... 11.68   headings
+ *   cyan       #00E5FF on ink ........... 12.78   prices, links, focus
+ *   grey       #999999 on ink ...........  6.90   on surface-2          5.89
+ *   ink on pink #FF2A85 .................  5.55   on hover #FF4D99      6.34
+ *   WHITE on pink #FF2A85 ...............  3.55   FAILS: fills carry ink
+ *   ink on cyan #00E5FF ................. 12.78
+ *   input border #6B6B75 on surface-2 ...  3.18
  */
 
 :root {
-  /* logo gradient stops */
-  --spz-cyan: #30a0f0;
-  --spz-purple: #8060e0;
-  --spz-magenta: #e000c0;
+  /* supplied palette */
+  --spz-ink: #0B0B0D;
+  --spz-cyan: #00E5FF;
+  --spz-pink: #FF2A85;
+  --spz-champagne: #E3C1AA;
+  --spz-grey: #999999;
 
-  /* surfaces */
-  --spz-bg-deep: #08060c;
-  --spz-bg: #0d0a12;
-  --spz-surface: #16111d;
-  --spz-surface-2: #201a2b;
-  --spz-border: rgba(255, 255, 255, 0.09);
-  --spz-border-strong: #3a3050;
-  --spz-well: #f6f2f9;          /* light stage for product photos */
-  --spz-ink: #16111d;           /* text on the well */
+  /* surfaces: tints of the ink */
+  --spz-bg-deep: #070708;
+  --spz-bg: #0B0B0D;
+  --spz-surface: #141418;
+  --spz-surface-2: #1D1D23;
+  --spz-surface-3: #26262E;
+  --spz-border: rgba(255, 255, 255, 0.08);
+  --spz-border-strong: #6B6B75;
+  --spz-well: #F4EFEA;          /* champagne-tinted stage for product photos */
 
   /* text */
-  --spz-text: #f4eff8;
-  --spz-text-muted: #b9afc6;
-  --spz-text-faint: #8f859c;
+  --spz-text: #F2F2F4;
+  --spz-heading: var(--spz-champagne);
+  --spz-text-muted: var(--spz-grey);
+  --spz-text-faint: var(--spz-grey);
 
   /* roles */
-  --spz-fill: #ce0f69;          /* buttons, badges: white text passes */
-  --spz-fill-hover: #b00c59;
-  --spz-fill-end: #6d4fd6;
-  --spz-accent: #4cb8ff;        /* prices, links, focus */
-  --spz-line: var(--spz-purple);
+  --spz-fill: var(--spz-pink);
+  --spz-fill-hover: #FF4D99;
+  --spz-on-fill: var(--spz-ink);  /* never white: 3.55:1 on the pink */
+  --spz-accent: var(--spz-cyan);
+  --spz-line: rgba(0, 229, 255, 0.45);
 
-  --spz-gradient: linear-gradient(135deg, var(--spz-cyan) 0%, var(--spz-purple) 50%, var(--spz-fill) 100%);
-  --spz-gradient-cta: linear-gradient(135deg, var(--spz-fill) 0%, var(--spz-fill-end) 100%);
+  --spz-gradient: linear-gradient(135deg, var(--spz-cyan) 0%, var(--spz-pink) 100%);
+  --spz-gradient-cta: linear-gradient(135deg, var(--spz-pink) 0%, var(--spz-fill-hover) 100%);
 }
 
 CSS;
@@ -533,7 +535,7 @@ a:focus,
 .discount-percentage,
 .discount-amount {
   background-color: var(--spz-fill) !important;
-  color: #fff !important;
+  color: var(--spz-on-fill) !important;
 }
 
 /* The theme ships no visible keyboard focus ring. */
