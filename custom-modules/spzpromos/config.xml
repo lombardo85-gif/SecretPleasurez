@@ -3,7 +3,7 @@
     <name>spzpromos</name>
     <displayName><![CDATA[Homepage offers carousel]]></displayName>
     <version><![CDATA[1.0.0]]></version>
-    <description><![CDATA[Promotional slides with live product prices, above the homepage featured products.]]></description>
+    <description><![CDATA[Promotional slides with live product prices above the homepage products, and a Shop by brand list below them.]]></description>
     <author><![CDATA[Secret Pleasurez]]></author>
     <tab><![CDATA[front_office_features]]></tab>
     <is_configurable>0</is_configurable>
