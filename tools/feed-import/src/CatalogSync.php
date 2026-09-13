@@ -16,6 +16,8 @@ final class CatalogSync
 {
     private PriceRules $pricing;
 
+    private BrandResolver $brands;
+
     /** @var array<string,mixed> */
     private array $config;
 
@@ -46,6 +48,7 @@ final class CatalogSync
         $this->dryRun = $dryRun;
         $this->idLang = (int) Configuration::get('PS_LANG_DEFAULT');
         $this->idShop = (int) Context::getContext()->shop->id;
+        $this->brands = new BrandResolver((array) ($config['catalog']['ignore_brands'] ?? []), $dryRun);
     }
 
     /** @return array<string,int> */
@@ -173,6 +176,18 @@ final class CatalogSync
 
             $weight = $this->toFloat($this->value($row, $map['weight'] ?? null));
             if ($weight !== null && $this->assign($product, 'weight', $weight)) {
+                $changed = true;
+            }
+
+            // Only a real brand is written: a "No Brand" row must not wipe a
+            // brand someone set by hand in the back office.
+            try {
+                $idManufacturer = $this->brands->resolve($this->value($row, $map['brand'] ?? null));
+            } catch (Throwable $e) {
+                $idManufacturer = 0;
+                $this->log->warn(sprintf('line %s: SKU %s brand not set: %s', $line, $sku, $e->getMessage()));
+            }
+            if ($idManufacturer > 0 && $this->assign($product, 'id_manufacturer', $idManufacturer)) {
                 $changed = true;
             }
 

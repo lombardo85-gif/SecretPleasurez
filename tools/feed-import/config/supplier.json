@@ -17,7 +17,8 @@
     "quantity": "PRODUCTS_QUANTITY",
     "ean13": "ITEM_UPC",
     "weight": "PRODUCTS_WEIGHT",
-    "category": "PRODUCTS_TYPE"
+    "category": "PRODUCTS_TYPE",
+    "brand": "ITEM_BRANDNAME"
   },
 
   "pricing": {
@@ -38,6 +39,7 @@
     "create_categories": true,
     "id_tax_rules_group": 0,
     "activate_new": false,
+    "ignore_brands": ["No Brand"],
     "stock_buffer": 2,
     "disable_missing": false,
     "max_disable_ratio": 0.25

@@ -12,6 +12,11 @@
  * theme is pink, cyan, champagne or duo; ends is Y-m-d.
  *
  * tools/dev/sample-promotions.php writes a sample set.
+ *
+ * It also renders "Shop by brand" near the foot of the homepage: the brands
+ * with the most live products, as text links. The feed carries no brand
+ * logos, and a strip of placeholder images would suggest partnerships that do
+ * not exist.
  */
 
 use PrestaShop\PrestaShop\Adapter\Image\ImageRetriever;
@@ -27,8 +32,18 @@ class SpzPromos extends Module
 {
     public const CONFIG_SLIDES = 'SPZ_PROMO_SLIDES';
 
+    /**
+     * Kept in one list so tools/dev/install-custom-modules.php can register a
+     * newly added hook without a reinstall, which would delete the slides.
+     */
+    public const HOOKS = ['displayTopColumn', 'displayHomeBottom', 'actionFrontControllerSetMedia'];
+
     private const THEMES = ['pink', 'cyan', 'champagne', 'duo'];
     private const PRODUCTS_PER_SLIDE = 3;
+
+    /** How many brands "Shop by brand" lists, and the fewest worth a section. */
+    private const BRAND_LINKS = 18;
+    private const BRAND_LINKS_MIN = 6;
 
     /** Category shortcuts under the carousel: the largest live categories. */
     private const CHIPS = [
@@ -54,14 +69,12 @@ class SpzPromos extends Module
         parent::__construct();
 
         $this->displayName = 'Homepage offers carousel';
-        $this->description = 'Promotional slides with live product prices, above the homepage featured products.';
+        $this->description = 'Promotional slides with live product prices above the homepage products, and a Shop by brand list below them.';
     }
 
     public function install()
     {
-        return parent::install()
-            && $this->registerHook('displayTopColumn')
-            && $this->registerHook('actionFrontControllerSetMedia');
+        return parent::install() && $this->registerHook(self::HOOKS);
     }
 
     public function uninstall()
@@ -106,6 +119,58 @@ class SpzPromos extends Module
         ]);
 
         return $this->fetch('module:spzpromos/views/templates/hook/spzpromos.tpl');
+    }
+
+    public function hookDisplayHomeBottom()
+    {
+        $brands = $this->getTopBrands();
+        if (count($brands) < self::BRAND_LINKS_MIN) {
+            return '';
+        }
+
+        $this->context->smarty->assign([
+            'spz_brands' => $brands,
+            'spz_brands_url' => $this->context->link->getPageLink('manufacturer'),
+        ]);
+
+        return $this->fetch('module:spzpromos/views/templates/hook/spzbrands.tpl');
+    }
+
+    /**
+     * The brands with the most products a shopper can actually open, listed
+     * alphabetically so the list reads as a directory rather than a ranking.
+     */
+    private function getTopBrands(): array
+    {
+        $p = _DB_PREFIX_;
+        $idShop = (int) $this->context->shop->id;
+
+        $rows = Db::getInstance()->executeS(
+            "SELECT m.id_manufacturer, m.name, COUNT(*) AS products
+             FROM {$p}manufacturer m
+             JOIN {$p}product pr ON pr.id_manufacturer = m.id_manufacturer
+             JOIN {$p}product_shop ps ON ps.id_product = pr.id_product AND ps.id_shop = {$idShop}
+             WHERE m.active = 1 AND ps.active = 1 AND ps.visibility IN ('both', 'catalog')
+             GROUP BY m.id_manufacturer, m.name
+             ORDER BY products DESC, m.name
+             LIMIT " . self::BRAND_LINKS
+        ) ?: [];
+
+        usort($rows, static fn ($a, $b) => strnatcasecmp($a['name'], $b['name']));
+
+        $brands = [];
+        foreach ($rows as $row) {
+            $brands[] = [
+                'name' => $row['name'],
+                'products' => (int) $row['products'],
+                'url' => $this->context->link->getManufacturerLink(
+                    (int) $row['id_manufacturer'],
+                    Tools::link_rewrite($row['name'])
+                ),
+            ];
+        }
+
+        return $brands;
     }
 
     private function getSlides(): array

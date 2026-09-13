@@ -75,6 +75,7 @@
 						  </form>
 		</div>
       {block name='product_name'}
+        {if !empty($product.manufacturer_name)}<p class="spz-card-brand">{$product.manufacturer_name}</p>{/if}
         <h1 class="h3 product-title" itemprop="name"><a href="{$product.url}">{$product.name|truncate:30:'...'}</a></h1>
       {/block}
 

@@ -418,6 +418,62 @@
   margin-top: 26px;
 }
 
+/* ---- Shop by brand (displayHomeBottom) --------------------------------- */
+.spz-brands {
+  margin-top: 56px;
+  margin-bottom: 56px;
+}
+
+.spz-brands__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.spz-brands__title {
+  margin: 0;
+  font-family: var(--spz-font-display);
+  font-size: clamp(24px, 3vw, 32px);
+  font-weight: 600;
+  color: var(--spz-heading);
+}
+
+.spz-brands__all {
+  color: var(--spz-accent) !important;
+  font-weight: 600;
+  text-decoration: underline !important;
+  text-underline-offset: 3px;
+}
+
+.spz-brands__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.spz-brands__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.spz-brands__count {
+  color: var(--spz-text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.spz-brands__chip:hover .spz-brands__count,
+.spz-brands__chip:focus-visible .spz-brands__count {
+  color: inherit;
+}
+
 /* ---- Smaller screens --------------------------------------------------- */
 @media (max-width: 991px) {
   .spz-slide {

@@ -32,6 +32,7 @@ $root = getenv('PS_ROOT_DIR') ?: '/var/www/html';
 require_once __DIR__ . '/src/FeedReader.php';
 require_once __DIR__ . '/src/PriceRules.php';
 require_once __DIR__ . '/src/ImportLogger.php';
+require_once __DIR__ . '/src/BrandResolver.php';
 require_once __DIR__ . '/src/CatalogSync.php';
 
 $opts = parseArgs($argv);

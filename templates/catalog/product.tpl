@@ -78,6 +78,9 @@
         <div class="col-md-6">
           {block name='page_header_container'}
             {block name='page_header'}
+              {if isset($product_manufacturer->id) && $product_manufacturer->active}
+                <a class="spz-product-brand" href="{$product_brand_url}">{$product_manufacturer->name}</a>
+              {/if}
               <h1 class="h1" itemprop="name">{block name='page_title'}{$product.name}{/block}</h1>
             {/block}
           {/block}

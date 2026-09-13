@@ -436,6 +436,38 @@ a {
   color: var(--spz-text) !important;
 }
 
+/* Brand above the product name, on cards and on the product page. */
+.spz-card-brand,
+.spz-product-brand {
+  display: block;
+  margin: 0 0 4px;
+  color: var(--spz-champagne) !important;
+  font-family: var(--spz-font-ui);
+  font-size: 11.5px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.spz-product-brand {
+  display: inline-block;
+  max-width: 100%;
+  margin-bottom: 8px;
+  font-size: 13px;
+  text-decoration: none !important;
+}
+
+.spz-product-brand:hover,
+.spz-product-brand:focus-visible {
+  color: var(--spz-accent) !important;
+  text-decoration: underline !important;
+  text-underline-offset: 3px;
+}
+
 .product-miniature .price {
   font-size: 16px !important;
   font-weight: 700 !important;

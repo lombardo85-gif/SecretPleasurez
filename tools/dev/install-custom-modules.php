@@ -4,7 +4,12 @@
  *
  * Each is mounted into /var/www/html/modules/<name> by docker-compose.yml, so
  * there is nothing to copy; this only registers and installs them. Safe to
- * re-run: installed modules are skipped unless --reinstall is passed.
+ * re-run: installed modules are not reinstalled unless --reinstall is passed
+ * (a reinstall deletes their settings), but any hook a module has gained since
+ * it was installed is registered.
+ *
+ * Theme demo modules whose spot one of these modules now fills are unhooked
+ * from that spot (see SPZ_REPLACED_HOOKS); they stay installed.
  *
  *   docker exec spz-shop php /opt/spz/tools/dev/install-custom-modules.php [--reinstall]
  */
@@ -19,6 +24,13 @@ $kernel = new AppKernel('prod', false);
 $kernel->boot();
 
 const SPZ_CUSTOM_MODULES = ['spzpromos'];
+
+/**
+ * module => hook it no longer renders in. otbrandlist's "Clients" strip showed
+ * placeholder logos under a heading implying client relationships; spzpromos
+ * lists real brands there instead.
+ */
+const SPZ_REPLACED_HOOKS = ['otbrandlist' => 'displayHomeBottom'];
 
 $reinstall = in_array('--reinstall', $argv, true);
 $failed = false;
@@ -37,7 +49,14 @@ foreach (SPZ_CUSTOM_MODULES as $name) {
     }
     if (Module::isInstalled($name)) {
         if (!$reinstall) {
-            echo "{$name}: already installed\n";
+            $hooks = defined(get_class($module) . '::HOOKS') ? constant(get_class($module) . '::HOOKS') : [];
+            $missing = array_values(array_filter($hooks, static fn ($hook) => !$module->isRegisteredInHook($hook)));
+            if ($missing !== [] && !$module->registerHook($missing)) {
+                fwrite(STDERR, "{$name}: could not register " . implode(', ', $missing) . "\n");
+                $failed = true;
+                continue;
+            }
+            echo "{$name}: already installed" . ($missing !== [] ? '; registered ' . implode(', ', $missing) : '') . "\n";
             continue;
         }
         $module->uninstall();
@@ -48,6 +67,24 @@ foreach (SPZ_CUSTOM_MODULES as $name) {
         fwrite(STDERR, "{$name}: install failed: " . implode('; ', $module->getErrors()) . "\n");
         $failed = true;
     }
+}
+
+foreach (SPZ_REPLACED_HOOKS as $name => $hook) {
+    $module = Module::isInstalled($name) ? Module::getInstanceByName($name) : false;
+    if (!$module || !$module->isRegisteredInHook($hook)) {
+        continue;
+    }
+    $idHook = (int) Hook::getIdByName($hook);
+    if ($idHook > 0 && $module->unregisterHook($idHook)) {
+        echo "{$name}: removed from {$hook}\n";
+    } else {
+        fwrite(STDERR, "{$name}: could not be removed from {$hook}\n");
+        $failed = true;
+    }
+}
+
+if (!$failed) {
+    Tools::clearSmartyCache();
 }
 
 exit($failed ? 1 : 0);

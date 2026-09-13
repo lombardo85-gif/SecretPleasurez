@@ -18,8 +18,12 @@
  * Idempotent and cheap, so it is safe to run repeatedly while images are
  * still being attached — the storefront fills in as photos land.
  *
- * It only ever activates. Products that later go out of stock are left to the
- * feed sync, which owns that decision.
+ * It only ever activates products. Products that later go out of stock are
+ * left to the feed sync, which owns that decision.
+ *
+ * Brands follow their products both ways: a brand is shown while it has at
+ * least one live product and hidden when it has none, so the brand list never
+ * leads a shopper to an empty page.
  *
  *   docker exec spz-shop php /opt/spz/tools/dev/activate-ready-products.php [--dry-run]
  */
@@ -58,16 +62,27 @@ $missingFromHome = "
       )
 ";
 
+$hasLiveProduct = "EXISTS (
+    SELECT 1 FROM {$p}product pr
+    JOIN {$p}product_shop ps ON ps.id_product = pr.id_product AND ps.active = 1
+    WHERE pr.id_manufacturer = m.id_manufacturer
+)";
+$brandsToShow = "FROM {$p}manufacturer m WHERE m.active = 0 AND {$hasLiveProduct}";
+$brandsToHide = "FROM {$p}manufacturer m WHERE m.active = 1 AND NOT {$hasLiveProduct}";
+
 $pending = (int) $db->getValue('SELECT COUNT(*) ' . $ready);
 $homeGap = (int) $db->getValue('SELECT COUNT(*) ' . $missingFromHome);
 $totals = $db->getRow("SELECT SUM(active = 1) AS active, SUM(active = 0) AS inactive FROM {$p}product_shop");
 
 printf(
-    "ready to activate: %d   live but not on homepage: %d   (active: %d, inactive: %d)%s\n",
+    "ready to activate: %d   live but not on homepage: %d   (active: %d, inactive: %d)\n"
+    . "brands to show: %d   brands to hide: %d%s\n",
     $pending,
     $homeGap,
     (int) $totals['active'],
     (int) $totals['inactive'],
+    (int) $db->getValue('SELECT COUNT(*) ' . $brandsToShow),
+    (int) $db->getValue('SELECT COUNT(*) ' . $brandsToHide),
     $dryRun ? '   [dry-run]' : ''
 );
 
@@ -103,7 +118,18 @@ if ($homeIds !== []) {
     }
 }
 
-if ($activated > 0 || $homeIds !== []) {
+// Resolve ids first for the same MariaDB reason as above: the EXISTS reads
+// product tables, but keeping the UPDATE on a plain id list is simplest.
+$showIds = array_map('intval', array_column($db->executeS('SELECT m.id_manufacturer ' . $brandsToShow) ?: [], 'id_manufacturer'));
+$hideIds = array_map('intval', array_column($db->executeS('SELECT m.id_manufacturer ' . $brandsToHide) ?: [], 'id_manufacturer'));
+if ($showIds !== []) {
+    $db->execute("UPDATE {$p}manufacturer SET active = 1, date_upd = NOW() WHERE id_manufacturer IN (" . implode(',', $showIds) . ')');
+}
+if ($hideIds !== []) {
+    $db->execute("UPDATE {$p}manufacturer SET active = 0, date_upd = NOW() WHERE id_manufacturer IN (" . implode(',', $hideIds) . ')');
+}
+
+if ($activated > 0 || $homeIds !== [] || $showIds !== [] || $hideIds !== []) {
     // Rendered pages and listings are cached; without this the storefront
     // keeps showing the old, empty state.
     Tools::clearSmartyCache();
@@ -111,4 +137,10 @@ if ($activated > 0 || $homeIds !== []) {
     Media::clearCache();
 }
 
-printf("activated %d product(s); added %d to the homepage pool\n", $activated, count($homeIds));
+printf(
+    "activated %d product(s); added %d to the homepage pool; showed %d brand(s), hid %d\n",
+    $activated,
+    count($homeIds),
+    count($showIds),
+    count($hideIds)
+);

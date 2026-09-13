@@ -129,7 +129,29 @@ docker exec -w /opt/spz/tools/feed-import spz-shop   php import-images.php --con
 Imported products stay inactive until they are worth showing.
 `tools/dev/activate-ready-products.php` activates anything in stock with at least
 one photo, and adds every live product to the Home category, which is what the
-homepage product block reads. It is idempotent - run it after each image batch.
+homepage product block reads. It also shows each brand that has a live product
+and hides brands that have none. It is idempotent - run it after each image batch.
+
+## Brands
+
+`mapping.brand` names the feed's brand column (`ITEM_BRANDNAME` for the 2022
+feed). The importer creates a manufacturer the first time it meets a brand and
+matches later rows on a folded name, so "OMG!" and "OMG" share one brand page.
+Values listed in `catalog.ignore_brands` (the feed's "No Brand") leave a product
+unbranded, and never clear a brand that was set by hand.
+
+To brand products that were imported before brands were mapped, without
+re-syncing prices and stock:
+
+```bash
+docker exec -w /opt/spz/tools/feed-import spz-shop \
+  php backfill-brands.php --config=config/supplier.json --dry-run
+docker exec -w /opt/spz/tools/feed-import spz-shop \
+  php backfill-brands.php --config=config/supplier.json
+docker exec spz-shop php /opt/spz/tools/dev/activate-ready-products.php
+```
+
+It only fills products that have no brand yet, so it is safe to re-run.
 
 ## Scheduling
 
