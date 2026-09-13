@@ -257,7 +257,7 @@ a {
 
   html.spz-stuck #header .header-top img.logo,
   html.spz-stuck #header .header-top #_desktop_logo img {
-    max-height: 46px !important;
+    max-height: 56px !important;
     width: auto !important;
   }
 }
@@ -268,6 +268,32 @@ a {
   }
   to {
     transform: none;
+  }
+}
+
+/* The logo (brand/NEW-Logo.png) is a neon mark on a near-black ground,
+   296x245 with no transparency. mix-blend-mode: lighten keeps the lighter of
+   logo and page in each channel, so the dark ground melts into the tinted
+   header while the neon and lettering are untouched: no visible rectangle,
+   and no edited copy of the artwork to keep in sync. */
+#header img.logo,
+#_desktop_logo img,
+#_mobile_logo img,
+.spz-age-gate__logo {
+  mix-blend-mode: lighten;
+}
+
+/* Near-square, unlike the wide wordmark it replaced, so cap by height. */
+#header .header-top img.logo,
+#_desktop_logo img {
+  width: auto !important;
+  max-height: 96px !important;
+}
+
+@media (max-width: 767px) {
+  #_mobile_logo img {
+    width: auto !important;
+    max-height: 64px !important;
   }
 }
 
