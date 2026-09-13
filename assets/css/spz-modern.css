@@ -1253,35 +1253,56 @@ body::before {
  * ------------------------------------------------------------------ */
 .spz-hero {
   position: relative;
-  isolation: isolate;
   margin: 28px 0 44px;
-  padding: clamp(28px, 5vw, 60px) clamp(16px, 4vw, 48px) clamp(24px, 4vw, 40px);
   overflow: hidden;
   text-align: center;
-  background: radial-gradient(120% 90% at 50% 0%, #16161c 0%, var(--spz-bg) 72%);
+  background: var(--spz-bg);
   border: 1px solid var(--spz-border);
   border-radius: var(--spz-radius-xl);
+  box-shadow:
+    0 30px 70px -40px rgba(255, 42, 133, 0.35),
+    0 30px 70px -40px rgba(0, 229, 255, 0.25);
 }
 
-.spz-hero__glow {
-  position: absolute;
-  inset: -30% -10% -10%;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(38% 42% at 30% 45%, rgba(0, 229, 255, 0.16), transparent 70%),
-    radial-gradient(38% 42% at 70% 45%, rgba(255, 42, 133, 0.16), transparent 70%);
-  filter: blur(24px);
-}
-
-/* The banner's starry ground is near-black; lighten dissolves it into the
-   stage so only the neon mark and lettering read. */
-.spz-hero__banner {
+/* The art (brand/Gemini_Generated_Image_96almx96almx96al.jpeg) fills the card edge to edge. It is
+   cut by tools/dev/build-hero.php: a wide band for desktop and a tighter
+   crop for phones, so the lettering is not shrunk to a sliver at 375px. */
+.spz-hero__media,
+.spz-hero__media img {
   display: block;
-  width: min(601px, 100%);
+  width: 100%;
   height: auto;
-  margin: 0 auto;
-  mix-blend-mode: lighten;
+}
+
+.spz-hero__media {
+  position: relative;
+}
+
+.spz-hero__media img {
+  aspect-ratio: 1376 / 520;
+  object-fit: cover;
+}
+
+@media (max-width: 767px) {
+  .spz-hero__media img {
+    aspect-ratio: 980 / 560;
+  }
+}
+
+/* Fade the art's lower edge into the card so the buttons sit on it cleanly. */
+.spz-hero__media::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 32%;
+  background: linear-gradient(to bottom, transparent, var(--spz-bg));
+  pointer-events: none;
+}
+
+.spz-hero__body {
+  position: relative;
+  margin-top: -28px;
+  padding: 0 clamp(16px, 4vw, 40px) clamp(22px, 3.5vw, 34px);
 }
 
 .spz-hero__actions {
@@ -1331,8 +1352,8 @@ body::before {
 @media (max-width: 767px) {
   .spz-hero__chips {
     justify-content: flex-start;
-    margin-inline: calc(-1 * clamp(16px, 4vw, 48px));
-    padding-inline: clamp(16px, 4vw, 48px);
+    margin-inline: calc(-1 * clamp(16px, 4vw, 40px));
+    padding-inline: clamp(16px, 4vw, 40px);
   }
 }
 

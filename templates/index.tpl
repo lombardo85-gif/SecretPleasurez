@@ -27,25 +27,30 @@
     {block name='page_content_container'}
       <section id="content" class="page-home">
         {block name='page_content_top'}
-          {* Brand hero, replacing the theme's demo slideshow. Banner is
-             brand/NEW-Banner.png, served from assets/img/spz-banner.png.
-             Links go to real categories only: no promotional claims until
-             real offers exist. Category ids are the largest live ones. *}
+          {* Brand hero, replacing the theme's demo slideshow. Art is
+             brand/Gemini_Generated_Image_96almx96almx96al.jpeg, cut by tools/dev/build-hero.php into
+             a wide desktop band and a tighter phone crop. Links go to real
+             categories only: no promotional claims until real offers exist.
+             Category ids are the largest live ones. *}
           {assign var=spz_chips value=[31=>'Vibrators', 35=>'Stimulators', 23=>'Dildos', 38=>'Anal', 36=>'Lingerie', 15=>'Bondage', 25=>'Lubricants', 40=>'Masturbators']}
           <section class="spz-hero" aria-labelledby="spz-hero-title">
-            <div class="spz-hero__glow" aria-hidden="true"></div>
             <h1 id="spz-hero-title" class="spz-visually-hidden">{$shop.name|escape:'html':'UTF-8'}</h1>
-            <img class="spz-hero__banner" src="{$urls.theme_assets}img/spz-banner.png" width="601" height="191"
-                 alt="{$shop.name|escape:'html':'UTF-8'} - Your secret. Our pleasure." fetchpriority="high" decoding="async">
-            <div class="spz-hero__actions">
-              <a class="btn btn-primary" href="{$link->getCategoryLink(31)}">Shop vibrators</a>
-              <a class="spz-btn-ghost" href="{$link->getCategoryLink(36)}">Browse lingerie</a>
+            <picture class="spz-hero__media">
+              <source media="(max-width: 767px)" srcset="{$urls.theme_assets}img/spz-hero-mobile.jpg" width="980" height="560">
+              <img src="{$urls.theme_assets}img/spz-hero-desktop.jpg" width="1376" height="520"
+                   alt="{$shop.name|escape:'html':'UTF-8'} - Your secret. Our pleasure." fetchpriority="high" decoding="async">
+            </picture>
+            <div class="spz-hero__body">
+              <div class="spz-hero__actions">
+                <a class="btn btn-primary" href="{$link->getCategoryLink(31)}">Shop vibrators</a>
+                <a class="spz-btn-ghost" href="{$link->getCategoryLink(36)}">Browse lingerie</a>
+              </div>
+              <nav class="spz-hero__chips" aria-label="Shop by category">
+                {foreach $spz_chips as $id_cat => $label}
+                  <a class="spz-chip" href="{$link->getCategoryLink($id_cat)}">{$label|escape:'html':'UTF-8'}</a>
+                {/foreach}
+              </nav>
             </div>
-            <nav class="spz-hero__chips" aria-label="Shop by category">
-              {foreach $spz_chips as $id_cat => $label}
-                <a class="spz-chip" href="{$link->getCategoryLink($id_cat)}">{$label|escape:'html':'UTF-8'}</a>
-              {/foreach}
-            </nav>
           </section>
         {/block}
 

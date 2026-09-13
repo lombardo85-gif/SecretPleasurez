@@ -6,7 +6,8 @@ Three different logo directions were tried; these are the survivors.
 | File | Size | Alpha | Notes |
 | --- | --- | --- | --- |
 | `NEW-Logo.png` | 296x245 | no | **In use** as the storefront logo (`img/spz-logo-neon.png`, 2026-09-12). Neon cyan/magenta interlocked symbols, rose-gold script, tagline "Your secret. Our pleasure." Near-black ground; `spz-modern.css` blends it into the header with `mix-blend-mode: lighten`, so no transparent copy is needed on the dark site. |
-| `NEW-Banner.png` | 601x191 | no | **In use** as the homepage hero (`assets/img/spz-banner.png`, 2026-09-12). Shown near its own size on a neon stage and blended with `mix-blend-mode: lighten`, not stretched across a full-width slider. |
+| `Gemini_Generated_Image_96almx96almx96al.jpeg` | 1376x768 | no | **In use** as the homepage hero (2026-09-12). Logo and "Your secret. Our pleasure." on a nebula; `tools/dev/build-hero.php` finds the logo and cuts `assets/img/spz-hero-desktop.jpg` (1376x520) and `spz-hero-mobile.jpg` (980x560) around it. |
+| `NEW-Banner.png` | 601x191 | no | Previous hero banner, replaced by the art above. |
 | `NEW-Favicon.ico` | 117x121 | yes | Supplied favicon: the neon symbols in a round metallic badge. One 32-bit image, not the usual 16/32/48 set. |
 | `NEW-Favicon.png` | 118x123 | no | Same artwork, but **actually a BMP** with a .png name and no transparency. Not used. |
 | `NEW-Favicon-source.png` | 117x121 | yes | The image inside `NEW-Favicon.ico`, decoded to PNG. Source for `tools/dev/build-favicon.php`. |
@@ -36,8 +37,15 @@ mid-surfaces. All tokens live in `tools/dev/build-brand-css.php`.
 
 ## Open issues
 
-- **The banner is small** (601x191), so it is shown at roughly its own size.
-  A 1920px-wide or 2x export would allow a full-width hero.
+- **The hero art is 1376px wide.** Sharp at normal density; a 2x (2752px)
+  export would stay crisp on high-density desktop screens.
+- **Other drafts, not used:** a 1024x1024 square of the same art
+  (`Gemini_Generated_Image_uflzt5uflzt5uflz.jpeg`, here in brand/); in
+  Downloads, a 1856x576 wide banner with the
+  tagline "Your secret desires, our pleasure to keep."; a logo with "The best
+  pleasures arrive in plain packages." (a shipping promise — only use it if
+  true); and two brand boards, one confirming the palette and one draft with
+  #0C0C0E and #9E9EA2.
 
 - **The neon logo is small** (296x245). Sharp at header size on high-density
   screens, but soft anywhere it is shown larger. Ask the designer for the
